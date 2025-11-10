@@ -17,12 +17,15 @@ export class LessonsService {
 
   async create(dto: CreateLessonDto) {
     await this.coursesService.findOne(dto.courseId);
-    const lesson = this.lessonsRepository.create({
+    const payload: Partial<Lesson> = {
       ...dto,
       durationMinutes: dto.durationMinutes ?? 5,
       order: dto.order ?? 0,
       isPreview: dto.isPreview ?? false,
-    });
+      videoUrl: dto.videoUrl ?? null,
+      content: dto.content ?? null,
+    };
+    const lesson = this.lessonsRepository.create(payload);
     return this.lessonsRepository.save(lesson);
   }
 

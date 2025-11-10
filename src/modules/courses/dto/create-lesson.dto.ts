@@ -34,4 +34,12 @@ export class CreateLessonDto {
   @IsOptional()
   @IsUUID()
   moduleId?: string;
+
+  @IsOptional()
+  @IsString()
+  videoUrl?: string;
+
+  @IsOptional()
+  @IsString()
+  content?: string;
 }

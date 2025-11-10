@@ -9,14 +9,17 @@ import { LessonsService } from './lessons.service';
 import { CourseModule } from './entities/course-module.entity';
 import { Course } from './entities/course.entity';
 import { Lesson } from './entities/lesson.entity';
+import { CourseWishlist } from './entities/course-wishlist.entity';
+import { CourseWishlistService } from './course-wishlist.service';
+import { CourseWishlistController } from './course-wishlist.controller';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Course, CourseModule, Lesson]),
+    TypeOrmModule.forFeature([Course, CourseModule, Lesson, CourseWishlist]),
     UsersModule,
   ],
-  controllers: [CoursesController, LessonsController],
-  providers: [CoursesService, LessonsService],
-  exports: [CoursesService, LessonsService, TypeOrmModule],
+  controllers: [CoursesController, LessonsController, CourseWishlistController],
+  providers: [CoursesService, LessonsService, CourseWishlistService],
+  exports: [CoursesService, LessonsService, CourseWishlistService, TypeOrmModule],
 })
 export class CoursesModule {}

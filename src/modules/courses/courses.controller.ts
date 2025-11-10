@@ -35,6 +35,12 @@ export class CoursesController {
     return this.coursesService.findAll();
   }
 
+  @Get('slug/:slug')
+  @ApiOperation({ summary: 'Get course by slug' })
+  findBySlug(@Param('slug') slug: string) {
+    return this.coursesService.findBySlug(slug);
+  }
+
   @Get(':id')
   @ApiOperation({ summary: 'Get course details' })
   findOne(@Param('id', new ParseUUIDPipe()) id: string) {

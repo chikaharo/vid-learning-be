@@ -31,6 +31,17 @@ export class CoursesService {
     });
   }
 
+  async findBySlug(slug: string) {
+    const course = await this.coursesRepository.findOne({
+      where: { slug },
+      relations: ['instructor', 'modules', 'lessons'],
+    });
+    if (!course) {
+      throw new NotFoundException(`Course ${slug} not found`);
+    }
+    return course;
+  }
+
   async findOne(id: string) {
     const course = await this.coursesRepository.findOne({
       where: { id },

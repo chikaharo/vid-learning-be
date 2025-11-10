@@ -19,6 +19,12 @@ export class Lesson extends BaseEntity {
   @Column({ name: 'is_preview', default: false })
   isPreview: boolean;
 
+  @Column({ name: 'video_url', type: 'text', nullable: true })
+  videoUrl?: string | null;
+
+  @Column({ type: 'text', nullable: true })
+  content?: string | null;
+
   @ManyToOne(() => Course, (course) => course.lessons, { onDelete: 'CASCADE' })
   course: Course;
 
