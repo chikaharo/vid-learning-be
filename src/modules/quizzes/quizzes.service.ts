@@ -30,6 +30,14 @@ export class QuizzesService {
     });
   }
 
+  findByCourse(courseId: string) {
+    return this.quizRepository.find({
+      where: { courseId },
+      relations: ['lesson'],
+      order: { createdAt: 'DESC' },
+    });
+  }
+
   async findOne(id: string) {
     const quiz = await this.quizRepository.findOne({
       where: { id },

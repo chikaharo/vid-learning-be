@@ -18,7 +18,7 @@ async function bootstrap() {
   );
 
   const configService = app.get<ConfigService<AppConfig, true>>(ConfigService);
-  const port = configService.get<number>('port', { infer: true }) ?? 3000;
+  const port = configService.get<number>('port', { infer: true }) ?? 8080;
 
   const swaggerConfig = new DocumentBuilder()
     .setTitle('Video Learning & Testing API')

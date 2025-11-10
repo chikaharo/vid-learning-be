@@ -35,6 +35,12 @@ export class QuizzesController {
     return this.quizzesService.findAll();
   }
 
+  @Get('course/:courseId')
+  @ApiOperation({ summary: 'List quizzes for a course' })
+  findByCourse(@Param('courseId', new ParseUUIDPipe()) courseId: string) {
+    return this.quizzesService.findByCourse(courseId);
+  }
+
   @Get(':id')
   @ApiOperation({ summary: 'Retrieve a quiz with questions' })
   findOne(@Param('id', new ParseUUIDPipe()) id: string) {
