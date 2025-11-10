@@ -1,0 +1,29 @@
+users(id, email, password, name, avatar_url, role, created_at)
+
+instructors(user_id PK/FK → users.id, bio, socials_json)
+
+courses(id, instructor_id FK, title, slug, description, level, price, is_published, thumbnail_url, created_at, updated_at, avg_rating, rating_count)
+
+course_categories(id, name, slug)
+
+course_category_map(course_id FK, category_id FK, PRIMARY KEY(course_id, category_id))
+
+lessons(id, course_id FK, title, order_index, video_id FK NULL, duration, is_preview BOOL)
+
+videos(id, video_url)
+
+enrollments(id, user_id FK, course_id FK, status ENUM('active','refunded','cancelled'), created_at)
+
+lesson_progress(user_id, lesson_id, last_position_sec, is_completed BOOL, updated_at, PRIMARY KEY(user_id, lesson_id))
+
+quizzes(id, owner_type ENUM('course','lesson'), owner_id, title, time_limit NULL, max_attempts NULL, pass_percent INT, randomize BOOL)
+
+questions(id, quiz_id FK, text, type ENUM('single','multi','true_false','short'), points INT, answer)
+
+quiz_attempts(id, quiz_id FK, user_id FK, started_at, submitted_at, score_percent, passed BOOL, answers_json)
+
+certificates(id, user_id FK, course_id FK, issued_at, serial_code)
+
+comments(id, lesson_id FK, user_id FK, body, created_at)
+
+orders(id, user_id FK, course_id FK, amount, status ENUM('pending','paid','failed','refunded'), created_at)
