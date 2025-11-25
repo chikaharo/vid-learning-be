@@ -1,4 +1,4 @@
-import { Column, Entity, ManyToOne } from 'typeorm';
+import { Column, Entity, ManyToOne, JoinColumn } from 'typeorm';
 
 import { BaseEntity } from '../../../common/entities/base.entity';
 import { QuizQuestion } from './quiz-question.entity';
@@ -17,8 +17,6 @@ export class QuizOption extends BaseEntity {
   @ManyToOne(() => QuizQuestion, (question) => question.options, {
     onDelete: 'CASCADE',
   })
+  @JoinColumn({ name: 'question_id' })
   question: QuizQuestion;
-
-  @Column({ name: 'question_id' })
-  questionId: string;
 }

@@ -3,14 +3,19 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
 import { CoursesService } from '../courses/courses.service';
+import { QuestionType } from '../../common/enums/question-type.enum';
 import { CreateQuizDto } from './dto/create-quiz.dto';
 import { UpdateQuizDto } from './dto/update-quiz.dto';
 import { Quiz } from './entities/quiz.entity';
+import { QuizQuestion } from './entities/quiz-question.entity';
+import { QuizOption } from './entities/quiz-option.entity';
 
 @Injectable()
 export class QuizzesService {
   constructor(
     @InjectRepository(Quiz) private readonly quizRepository: Repository<Quiz>,
+    @InjectRepository(QuizQuestion)
+    private readonly questionRepository: Repository<QuizQuestion>,
     private readonly coursesService: CoursesService,
   ) {}
 
@@ -20,7 +25,33 @@ export class QuizzesService {
       ...dto,
       isPublished: dto.isPublished ?? false,
     });
-    return this.quizRepository.save(quiz);
+
+    const savedQuiz = await this.quizRepository.save(quiz);
+
+    if (dto.questions && dto.questions.length) {
+      const questions = dto.questions.map((question, index) => {
+        const q = new QuizQuestion();
+        q.prompt = question.prompt;
+        q.order = question.order ?? index;
+        q.points = question.points ?? 1;
+        q.type = QuestionType.SINGLE_CHOICE;
+        q.quiz = savedQuiz;
+        q.options =
+          question.options?.map((option) => {
+            const opt = new QuizOption();
+            opt.label = option.label;
+            opt.explanation = option.explanation;
+            opt.isCorrect = option.isCorrect ?? false;
+            opt.question = q;
+            return opt;
+          }) ?? [];
+        return q;
+      });
+      await this.questionRepository.save(questions);
+      savedQuiz.questions = questions;
+    }
+
+    return savedQuiz;
   }
 
   findAll() {

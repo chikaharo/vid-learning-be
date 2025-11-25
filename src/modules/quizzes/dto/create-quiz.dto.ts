@@ -6,7 +6,11 @@ import {
   IsUUID,
   Max,
   Min,
+  ValidateNested,
 } from 'class-validator';
+import { Type } from 'class-transformer';
+
+import { CreateQuizQuestionDto } from './create-quiz-question.dto';
 
 export class CreateQuizDto {
   @IsString()
@@ -32,4 +36,9 @@ export class CreateQuizDto {
   @IsOptional()
   @IsBoolean()
   isPublished?: boolean;
+
+  @IsOptional()
+  @ValidateNested({ each: true })
+  @Type(() => CreateQuizQuestionDto)
+  questions?: CreateQuizQuestionDto[];
 }

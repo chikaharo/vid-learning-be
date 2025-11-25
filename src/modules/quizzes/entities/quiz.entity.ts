@@ -32,7 +32,9 @@ export class Quiz extends BaseEntity {
   @Column({ name: 'lesson_id', nullable: true })
   lessonId?: string;
 
-  @OneToMany(() => QuizQuestion, (question) => question.quiz, { cascade: true })
+  @OneToMany(() => QuizQuestion, (question) => question.quiz, {
+    cascade: ['insert', 'update'],
+  })
   questions: QuizQuestion[];
 
   @OneToMany(() => QuizAttempt, (attempt) => attempt.quiz)

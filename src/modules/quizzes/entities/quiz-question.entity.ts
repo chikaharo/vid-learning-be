@@ -1,4 +1,4 @@
-import { Column, Entity, ManyToOne, OneToMany } from 'typeorm';
+import { Column, Entity, ManyToOne, OneToMany, JoinColumn } from 'typeorm';
 
 import { BaseEntity } from '../../../common/entities/base.entity';
 import { QuestionType } from '../../../common/enums/question-type.enum';
@@ -24,10 +24,8 @@ export class QuizQuestion extends BaseEntity {
   points: number;
 
   @ManyToOne(() => Quiz, (quiz) => quiz.questions, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'quiz_id' })
   quiz: Quiz;
-
-  @Column({ name: 'quiz_id' })
-  quizId: string;
 
   @OneToMany(() => QuizOption, (option) => option.question, { cascade: true })
   options: QuizOption[];

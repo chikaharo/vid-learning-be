@@ -36,6 +36,7 @@ export class EnrollmentsService {
     const enrollment = this.enrollmentsRepository.create({
       ...dto,
       progressPercent: dto.progressPercent ?? 0,
+      completedLessonIds: dto.completedLessonIds ?? [],
     });
     return this.enrollmentsRepository.save(enrollment);
   }
