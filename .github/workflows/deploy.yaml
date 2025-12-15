@@ -1,0 +1,72 @@
+name: Build and Deploy Node.js to EC2
+
+on:
+  push:
+    branches: [ "main" ]
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      # 1. Install ALL dependencies (including devDependencies like TypeScript)
+      - name: Install Dependencies
+        run: npm ci
+
+      # 2. Build the project (creates dist/ or build/ folder)
+      - name: Build Source
+        run: npm run build
+
+      # - name: Configure AWS Credentials
+      #   uses: aws-actions/configure-aws-credentials@v4
+      #   with:
+      #     role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+      #     aws-region: us-east-1
+
+      - name: Configure SSH
+        run: |
+          mkdir -p ~/.ssh/
+          echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          cat >>~/.ssh/config <<END
+          Host ec2-target
+            HostName ${{ secrets.HOST_DNS }}
+            User ${{ secrets.USERNAME }}
+            IdentityFile ~/.ssh/deploy_key
+            StrictHostKeyChecking no
+          END
+
+      # 3. Copy ONLY the build artifacts and package definition
+      # We do NOT copy node_modules from the runner.
+      # We assume the build output is in a folder named 'dist'.
+      - name: Copy Artifacts via SCP
+        run: |
+          scp -r dist package.json package-lock.json ecosystem.config.js ec2-target:${{ secrets.TARGET_DIR }}
+
+      # 4. Install Production Deps on EC2 and Restart
+      - name: Remote Deployment Execution
+        run: |
+          ssh ec2-target << 'EOF'
+            cd ${{ secrets.TARGET_DIR }}
+
+            # Install ONLY production dependencies (fast and OS-compatible)
+            npm install --production
+
+            # Restart PM2 pointing to the BUILT entry point
+            # Example: dist/main.js or dist/index.js
+            pm2 reload ecosystem.config.js || pm2 start dist/index.js --name my-app
+            
+            pm2 save
+          EOF

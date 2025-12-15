@@ -31,6 +31,13 @@ export class Enrollment extends BaseEntity {
   @Column({ name: 'progress_percent', type: 'int', default: 0 })
   progressPercent: number;
 
+  @Column({
+    name: 'completed_lesson_ids',
+    type: 'jsonb',
+    default: () => "'[]'",
+  })
+  completedLessonIds: string[];
+
   @Column({ name: 'last_accessed_at', type: 'timestamptz', nullable: true })
   lastAccessedAt?: Date;
 
