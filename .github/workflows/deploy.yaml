@@ -23,7 +23,7 @@ jobs:
 
       # 1. Install ALL dependencies (including devDependencies like TypeScript)
       - name: Install Dependencies
-        run: npm ci
+        run: npm install
 
       # 2. Build the project (creates dist/ or build/ folder)
       - name: Build Source
