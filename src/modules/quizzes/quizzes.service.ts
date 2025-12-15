@@ -21,15 +21,16 @@ export class QuizzesService {
 
   async create(dto: CreateQuizDto) {
     await this.coursesService.findOne(dto.courseId);
+    const { questions = [], ...quizData } = dto;
     const quiz = this.quizRepository.create({
-      ...dto,
-      isPublished: dto.isPublished ?? false,
+      ...quizData,
+      isPublished: quizData.isPublished ?? false,
     });
 
     const savedQuiz = await this.quizRepository.save(quiz);
 
-    if (dto.questions && dto.questions.length) {
-      const questions = dto.questions.map((question, index) => {
+    if (questions.length) {
+      const questionEntities = questions.map((question, index) => {
         const q = new QuizQuestion();
         q.prompt = question.prompt;
         q.order = question.order ?? index;
@@ -47,11 +48,13 @@ export class QuizzesService {
           }) ?? [];
         return q;
       });
-      await this.questionRepository.save(questions);
-      savedQuiz.questions = questions;
+      console.log('Saving questions:', questionEntities);
+      const res = await this.questionRepository.save(questionEntities);
+      console.log('Saved questions:', res);
     }
 
-    return savedQuiz;
+    // Re-fetch without in-memory circular refs (question.quiz/option.question)
+    return this.findOne(savedQuiz.id);
   }
 
   findAll() {
@@ -77,6 +80,7 @@ export class QuizzesService {
     if (!quiz) {
       throw new NotFoundException(`Quiz ${id} not found`);
     }
+    console.log('Find One Quiz:', quiz);
     return quiz;
   }
 
