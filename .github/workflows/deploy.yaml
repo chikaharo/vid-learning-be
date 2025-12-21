@@ -70,7 +70,7 @@ jobs:
 
       - name: Copy to S3
         run: |
-          aws s3 cp deployment-package.zip s3://${{ env.S3_BUCKET }}/builds/${{ github.sha }}.zip
+          aws s3 cp deployment-package.zip s3://${{ env.S3_BUCKET }}/builds/${{ github.sha }}.zip --sse AES256
 
       - name: Deploy via SSM
         run: |
