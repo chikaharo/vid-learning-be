@@ -44,7 +44,8 @@ jobs:
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          # role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          role-to-assume: arn:aws:iam::468629877310:role/huybd-vidlearning-github-role
           aws-region: us-east-1
 
       - name: Configure SSH
@@ -63,9 +64,9 @@ jobs:
       # 3. Copy ONLY the build artifacts and package definition
       # We do NOT copy node_modules from the runner.
       # We assume the build output is in a folder named 'dist'.
-      - name: Copy Artifacts via SCP
-        run: |
-          scp -r dist package.json package-lock.json ecosystem.config.js ec2-target:${{ secrets.TARGET_DIR }}
+      # - name: Copy Artifacts via SCP
+      #   run: |
+      #     scp -r dist package.json package-lock.json ecosystem.config.js ec2-target:${{ secrets.TARGET_DIR }}
 
       - name: Copy to S3
         run: |
@@ -104,7 +105,7 @@ jobs:
               # "sudo systemctl restart myapp.service",
 
               # 7. Run app
-              "pm2 reload ecosystem.config.js || pm2 start dist/index.js --name vid-learning-be --start -p 8080",
+              "pm2 reload ecosystem.config.js || pm2 start dist/index.js --name vid-learning-be -- start -p 8080",
               "pm2 save",
               "echo Deployment Complete"
             ]'
