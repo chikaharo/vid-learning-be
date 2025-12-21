@@ -100,9 +100,6 @@ jobs:
               
               "# 5. Cleanup",
               "rm /tmp/deployment.zip",
-              
-              "# 6. Restart Service (Example)",
-              # "sudo systemctl restart myapp.service",
 
               # 7. Run app
               "pm2 reload ecosystem.config.js || pm2 start dist/index.js --name vid-learning-be -- start -p 8080",
