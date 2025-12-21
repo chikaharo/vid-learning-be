@@ -102,7 +102,7 @@ jobs:
               "rm /tmp/deployment.zip",
 
               # 7. Run app
-              "pm2 reload ecosystem.config.js || pm2 start dist/index.js --name vid-learning-be -- start -p 8080",
+              "pm2 start dist/index.js --name vid-learning-be -- start -p 8080",
               "pm2 save",
               "echo Deployment Complete"
             ]'
