@@ -4,6 +4,12 @@ on:
   push:
     branches: [ "main" ]
 
+env:
+  AWS_REGION: us-east-1
+  S3_BUCKET: huybd-vidlearning-dev-assets-us-east-1
+  INSTANCE_ID: i-027af4d4132c6351e
+  PROJECT_PATH: /var/www/vid-learning/vid-learning-be
+
 permissions:
   id-token: write
   contents: read
@@ -27,13 +33,19 @@ jobs:
 
       # 2. Build the project (creates dist/ or build/ folder)
       - name: Build Source
-        run: npm run build
+        run: |
+          npm run build
+          rm -rf node_modules
 
-      # - name: Configure AWS Credentials
-      #   uses: aws-actions/configure-aws-credentials@v4
-      #   with:
-      #     role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
-      #     aws-region: us-east-1
+      - name: Zip Artifact
+        run: |
+          zip -r deployment-package.zip dist package.json package-lock.json
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: us-east-1
 
       - name: Configure SSH
         run: |
@@ -55,18 +67,60 @@ jobs:
         run: |
           scp -r dist package.json package-lock.json ecosystem.config.js ec2-target:${{ secrets.TARGET_DIR }}
 
-      # 4. Install Production Deps on EC2 and Restart
-      - name: Remote Deployment Execution
+      - name: Copy to S3
         run: |
-          ssh ec2-target << 'EOF'
-            cd ${{ secrets.TARGET_DIR }}
+          aws s3 cp deployment-package.zip s3://${{ env.S3_BUCKET }}/builds/${{ github.sha }}.zip
 
-            # Install ONLY production dependencies (fast and OS-compatible)
-            npm install --production
+      - name: Deploy via SSM
+        run: |
+          aws ssm send-command \
+            --document-name "AWS-RunShellScript" \
+            --targets "Key=instanceids,Values=${{ env.INSTANCE_ID }}" \
+            --comment "Deploying commit ${{ github.sha }}" \
+            --parameters commands='[
+              "echo Starting Deployment...",
+              "export AWS_DEFAULT_REGION=${{ env.AWS_REGION }}",
+              
+              "# 1. Create directory if not exists",
+              "mkdir -p ${{ env.PROJECT_PATH }}",
 
-            # Restart PM2 pointing to the BUILT entry point
-            # Example: dist/main.js or dist/index.js
-            pm2 reload ecosystem.config.js || pm2 start dist/index.js --name my-app
+              "# 2. Clean the directory",
+              "rm -rf ${{ env.PROJECT_PATH }}/*",
+
+              "# 2. Download from S3",
+              "aws s3 cp s3://${{ env.S3_BUCKET }}/builds/${{ github.sha }}.zip /tmp/deployment.zip",
+              
+              "# 3. Unzip to target location (overwriting)",
+              "unzip -o /tmp/deployment.zip -d ${{ env.PROJECT_PATH }}",
+              
+              "# 4. Install dependencies (if needed on server)",
+              "cd ${{ env.PROJECT_PATH }}",
+              "npm install --production",
+              
+              "# 5. Cleanup",
+              "rm /tmp/deployment.zip",
+              
+              "# 6. Restart Service (Example)",
+              # "sudo systemctl restart myapp.service",
+
+              # 7. Run app
+              "pm2 reload ecosystem.config.js || pm2 start dist/index.js --name vid-learning-be --start -p 8080",
+              "pm2 save",
+              "echo Deployment Complete"
+            ]'
+
+      # 4. Install Production Deps on EC2 and Restart
+      # - name: Remote Deployment Execution
+      #   run: |
+      #     ssh ec2-target << 'EOF'
+      #       cd ${{ secrets.TARGET_DIR }}
+
+      #       # Install ONLY production dependencies (fast and OS-compatible)
+      #       npm install --production
+
+      #       # Restart PM2 pointing to the BUILT entry point
+      #       # Example: dist/main.js or dist/index.js
+      #       pm2 reload ecosystem.config.js || pm2 start dist/index.js --name my-app
             
-            pm2 save
-          EOF
+      #       pm2 save
+      #     EOF
