@@ -96,6 +96,7 @@ jobs:
               
               "# 4. Install dependencies (if needed on server)",
               "cd ${{ env.PROJECT_PATH }}",
+              "whoami && pwd",
               "npm install --production",
               
               "# 5. Cleanup",
