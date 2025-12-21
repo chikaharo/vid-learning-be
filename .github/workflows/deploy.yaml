@@ -94,18 +94,7 @@ jobs:
               "# 3. Unzip to target location (overwriting)",
               "unzip -o /tmp/deployment.zip -d ${{ env.PROJECT_PATH }}",
               
-              "# 4. Install dependencies (if needed on server)",
-              "cd ${{ env.PROJECT_PATH }}",
-              "whoami && pwd",
-              "npm install --production",
               
-              "# 5. Cleanup",
-              "rm /tmp/deployment.zip",
-
-              "# 7. Run app",
-              "pm2 start dist/index.js --name vid-learning-be -- start -p 8080",
-              "pm2 save",
-              "echo Deployment Complete"
             ]'
 
       # 4. Install Production Deps on EC2 and Restart
