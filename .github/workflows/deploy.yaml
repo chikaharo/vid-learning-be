@@ -94,7 +94,6 @@ jobs:
               "# 3. Unzip to target location (overwriting)",
               "unzip -o /tmp/deployment.zip -d ${{ env.PROJECT_PATH }}",
               
-              
             ]'
 
       # 4. Install Production Deps on EC2 and Restart
