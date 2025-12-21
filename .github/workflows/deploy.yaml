@@ -1,114 +1,114 @@
-  name: Build and Deploy Node.js to EC2
+name: Build and Deploy Node.js to EC2
 
-  on:
-    push:
-      branches: [ "main" ]
+on:
+  push:
+    branches: [ "main" ]
 
-  env:
-    AWS_REGION: us-east-1
-    S3_BUCKET: huybd-vidlearning-dev-assets-us-east-1
-    INSTANCE_ID: i-027af4d4132c6351e
-    PROJECT_PATH: /var/www/vid-learning/vid-learning-be
+env:
+  AWS_REGION: us-east-1
+  S3_BUCKET: huybd-vidlearning-dev-assets-us-east-1
+  INSTANCE_ID: i-027af4d4132c6351e
+  PROJECT_PATH: /var/www/vid-learning/vid-learning-be
 
-  permissions:
-    id-token: write
-    contents: read
+permissions:
+  id-token: write
+  contents: read
 
-  jobs:
-    build-and-deploy:
-      runs-on: ubuntu-latest
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
 
-      steps:
-        - name: Checkout Source Code
-          uses: actions/checkout@v4
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
 
-        - name: Setup Node.js
-          uses: actions/setup-node@v4
-          with:
-            node-version: '20'
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
 
-        # 1. Install ALL dependencies (including devDependencies like TypeScript)
-        - name: Install Dependencies
-          run: npm install
+      # 1. Install ALL dependencies (including devDependencies like TypeScript)
+      - name: Install Dependencies
+        run: npm install
 
-        # 2. Build the project (creates dist/ or build/ folder)
-        - name: Build Source
-          run: |
-            echo "${{ secrets.ENV_FILE }}" > .env && npm run build
-            rm -rf node_modules
+      # 2. Build the project (creates dist/ or build/ folder)
+      - name: Build Source
+        run: |
+          echo "${{ secrets.ENV_FILE }}" > .env && npm run build
+          rm -rf node_modules
 
-        - name: Zip Artifact
-          run: |
-            zip -r deployment-package.zip dist package.json package-lock.json
+      - name: Zip Artifact
+        run: |
+          zip -r deployment-package.zip dist package.json package-lock.json
 
-        - name: Configure AWS Credentials
-          uses: aws-actions/configure-aws-credentials@v4
-          with:
-            # role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
-            role-to-assume: arn:aws:iam::468629877310:role/huybd-vidlearning-github-role
-            aws-region: us-east-1
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          # role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          role-to-assume: arn:aws:iam::468629877310:role/huybd-vidlearning-github-role
+          aws-region: us-east-1
 
-        - name: Configure SSH
-          run: |
-            mkdir -p ~/.ssh/
-            echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/deploy_key
-            chmod 600 ~/.ssh/deploy_key
-            cat >>~/.ssh/config <<END
-            Host ec2-target
-              HostName ${{ secrets.HOST_DNS }}
-              User ${{ secrets.USERNAME }}
-              IdentityFile ~/.ssh/deploy_key
-              StrictHostKeyChecking no
-            END
+      - name: Configure SSH
+        run: |
+          mkdir -p ~/.ssh/
+          echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          cat >>~/.ssh/config <<END
+          Host ec2-target
+            HostName ${{ secrets.HOST_DNS }}
+            User ${{ secrets.USERNAME }}
+            IdentityFile ~/.ssh/deploy_key
+            StrictHostKeyChecking no
+          END
 
-        # 3. Copy ONLY the build artifacts and package definition
-        # We do NOT copy node_modules from the runner.
-        # We assume the build output is in a folder named 'dist'.
-        # - name: Copy Artifacts via SCP
-        #   run: |
-        #     scp -r dist package.json package-lock.json ecosystem.config.js ec2-target:${{ secrets.TARGET_DIR }}
+      # 3. Copy ONLY the build artifacts and package definition
+      # We do NOT copy node_modules from the runner.
+      # We assume the build output is in a folder named 'dist'.
+      # - name: Copy Artifacts via SCP
+      #   run: |
+      #     scp -r dist package.json package-lock.json ecosystem.config.js ec2-target:${{ secrets.TARGET_DIR }}
 
-        - name: Copy to S3
-          run: |
-            aws s3 cp deployment-package.zip s3://${{ env.S3_BUCKET }}/builds/${{ github.sha }}.zip --sse AES256
+      - name: Copy to S3
+        run: |
+          aws s3 cp deployment-package.zip s3://${{ env.S3_BUCKET }}/builds/${{ github.sha }}.zip --sse AES256
 
-        - name: Deploy via SSM
-          run: |
-            aws ssm send-command \
-              --document-name "AWS-RunShellScript" \
-              --targets "Key=instanceids,Values=${{ env.INSTANCE_ID }}" \
-              --comment "Deploying commit ${{ github.sha }}" \
-              --parameters commands='[
-                "echo Starting Deployment...",
-                "export AWS_DEFAULT_REGION=${{ env.AWS_REGION }}",
-                
-                "# 1. Create directory if not exists",
-                "mkdir -p ${{ env.PROJECT_PATH }}",
-
-                "# 2. Clean the directory",
-                "rm -rf ${{ env.PROJECT_PATH }}/*",
-
-                "# 2. Download from S3",
-                "aws s3 cp s3://${{ env.S3_BUCKET }}/builds/${{ github.sha }}.zip /tmp/deployment.zip",
-                
-                "# 3. Unzip to target location (overwriting)",
-                "unzip -o /tmp/deployment.zip -d ${{ env.PROJECT_PATH }}",
-                
-                
-              ]'
-
-        # 4. Install Production Deps on EC2 and Restart
-        # - name: Remote Deployment Execution
-        #   run: |
-        #     ssh ec2-target << 'EOF'
-        #       cd ${{ secrets.TARGET_DIR }}
-
-        #       # Install ONLY production dependencies (fast and OS-compatible)
-        #       npm install --production
-
-        #       # Restart PM2 pointing to the BUILT entry point
-        #       # Example: dist/main.js or dist/index.js
-        #       pm2 reload ecosystem.config.js || pm2 start dist/index.js --name my-app
+      - name: Deploy via SSM
+        run: |
+          aws ssm send-command \
+            --document-name "AWS-RunShellScript" \
+            --targets "Key=instanceids,Values=${{ env.INSTANCE_ID }}" \
+            --comment "Deploying commit ${{ github.sha }}" \
+            --parameters commands='[
+              "echo Starting Deployment...",
+              "export AWS_DEFAULT_REGION=${{ env.AWS_REGION }}",
               
-        #       pm2 save
-        #     EOF
+              "# 1. Create directory if not exists",
+              "mkdir -p ${{ env.PROJECT_PATH }}",
+
+              "# 2. Clean the directory",
+              "rm -rf ${{ env.PROJECT_PATH }}/*",
+
+              "# 2. Download from S3",
+              "aws s3 cp s3://${{ env.S3_BUCKET }}/builds/${{ github.sha }}.zip /tmp/deployment.zip",
+              
+              "# 3. Unzip to target location (overwriting)",
+              "unzip -o /tmp/deployment.zip -d ${{ env.PROJECT_PATH }}",
+              
+              
+            ]'
+
+      # 4. Install Production Deps on EC2 and Restart
+      # - name: Remote Deployment Execution
+      #   run: |
+      #     ssh ec2-target << 'EOF'
+      #       cd ${{ secrets.TARGET_DIR }}
+
+      #       # Install ONLY production dependencies (fast and OS-compatible)
+      #       npm install --production
+
+      #       # Restart PM2 pointing to the BUILT entry point
+      #       # Example: dist/main.js or dist/index.js
+      #       pm2 reload ecosystem.config.js || pm2 start dist/index.js --name my-app
+            
+      #       pm2 save
+      #     EOF
