@@ -97,8 +97,11 @@ jobs:
               "echo \"${{ secrets.ENV_FILE }}\" > ${{ env.PROJECT_PATH }}/.env",
 
               "# 5. Install Production Deps",
-              "cd ${{ env.PROJECT_PATH }} && npm install --production",
+              "su - ec2-user -c \"cd ${{ env.PROJECT_PATH }} && npm install --production\"",
 
               "# 6. Restart Application with PM2",
-              "pm2 reload ecosystem.config.js || pm2 start dist/src/main.js --name vid-learning-be -- start -p 8080",
+              "su - ec2-user -c \"pm2 restart vid-learning-be || pm2 start ${{ env.PROJECT_PATH }}/dist/index.js --name vid-learning-be -- start -p 8080\"",
+              "su - ec2-user -c \"pm2 save\"",
+
+              "echo Deployment Complete"
             ]'
