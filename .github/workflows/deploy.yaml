@@ -86,14 +86,22 @@ jobs:
               "mkdir -p ${{ env.PROJECT_PATH }}",
 
               "# 2. Clean the directory",
-              "rm -rf ${{ env.PROJECT_PATH }}/*",
+              "cd /var/www/vid-learning/vid-learning-be && find . -mindepth 1 ! -name '.env' -exec rm -rf {} +",
 
               "# 2. Download from S3",
               "aws s3 cp s3://${{ env.S3_BUCKET }}/builds/${{ github.sha }}.zip /tmp/deployment.zip",
               
               "# 3. Unzip to target location (overwriting)",
               "unzip -o /tmp/deployment.zip -d ${{ env.PROJECT_PATH }}",
-              
+
+              "# 4. Create ENV file",
+              "echo \"${{ secrets.ENV_FILE }}\" > ${{ env.PROJECT_PATH }}/.env",
+
+              "# 5. Install Production Deps",
+              "cd ${{ env.PROJECT_PATH }} && npm install --production",
+
+              "# 6. Restart Application with PM2",
+              "pm2 reload ecosystem.config.js || pm2 start dist/src/main.js --name vid-learning-be -- start -p 8080",
             ]'
 
       # 4. Install Production Deps on EC2 and Restart
