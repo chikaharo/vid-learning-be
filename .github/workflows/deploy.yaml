@@ -76,12 +76,11 @@ jobs:
         run: |
           aws ssm send-command \
             --document-name "AWS-RunShellScript" \
-            --targets "Key=instanceids,Values=${{ env.INSTANCE_ID }}" \
-            --comment "Deploying commit ${{ github.sha }}" \
+            --targets "Key=instanceids,Values=i-027af4d4132c6351e" \
             --parameters commands='[
               "echo Starting Deployment...",
               "export AWS_DEFAULT_REGION=${{ env.AWS_REGION }}",
-              
+
               "# 1. Create directory if not exists",
               "mkdir -p ${{ env.PROJECT_PATH }}",
 
@@ -89,7 +88,7 @@ jobs:
               "cd /var/www/vid-learning/vid-learning-be && find . -mindepth 1 ! -name '.env' -exec rm -rf {} +",
 
               "# 2. Download from S3",
-              "aws s3 cp s3://${{ env.S3_BUCKET }}/builds/${{ github.sha }}.zip /tmp/deployment.zip",
+              "aws s3 cp s3://${{ env.S3_BUCKET }}/builds/580441095722c85c57b4c2b3eaa4d579298d9ec9.zip /tmp/deployment.zip",
               
               "# 3. Unzip to target location (overwriting)",
               "unzip -o /tmp/deployment.zip -d ${{ env.PROJECT_PATH }}",
@@ -103,19 +102,3 @@ jobs:
               "# 6. Restart Application with PM2",
               "pm2 reload ecosystem.config.js || pm2 start dist/src/main.js --name vid-learning-be -- start -p 8080",
             ]'
-
-      # 4. Install Production Deps on EC2 and Restart
-      # - name: Remote Deployment Execution
-      #   run: |
-      #     ssh ec2-target << 'EOF'
-      #       cd ${{ secrets.TARGET_DIR }}
-
-      #       # Install ONLY production dependencies (fast and OS-compatible)
-      #       npm install --production
-
-      #       # Restart PM2 pointing to the BUILT entry point
-      #       # Example: dist/main.js or dist/index.js
-      #       pm2 reload ecosystem.config.js || pm2 start dist/index.js --name my-app
-            
-      #       pm2 save
-      #     EOF
