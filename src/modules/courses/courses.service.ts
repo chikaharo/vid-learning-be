@@ -34,7 +34,15 @@ export class CoursesService {
   async findBySlug(slug: string) {
     const course = await this.coursesRepository.findOne({
       where: { slug },
-      relations: ['instructor', 'modules', 'lessons'],
+      relations: ['instructor', 'modules', 'modules.lessons', 'lessons'],
+      order: {
+        modules: {
+          order: 'ASC',
+          lessons: {
+            order: 'ASC',
+          },
+        },
+      },
     });
     if (!course) {
       throw new NotFoundException(`Course ${slug} not found`);
@@ -45,7 +53,15 @@ export class CoursesService {
   async findOne(id: string) {
     const course = await this.coursesRepository.findOne({
       where: { id },
-      relations: ['instructor', 'modules', 'lessons'],
+      relations: ['instructor', 'modules', 'modules.lessons', 'lessons'],
+      order: {
+        modules: {
+          order: 'ASC',
+          lessons: {
+            order: 'ASC',
+          },
+        },
+      },
     });
     if (!course) {
       throw new NotFoundException(`Course ${id} not found`);
