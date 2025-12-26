@@ -15,6 +15,8 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CreateQuizDto } from './dto/create-quiz.dto';
 import { UpdateQuizDto } from './dto/update-quiz.dto';
 import { QuizzesService } from './quizzes.service';
+import { User } from '../../common/decorators/user.decorator';
+import { JwtPayload } from '../auth/interfaces/jwt-payload.interface';
 
 @ApiTags('Quizzes')
 @Controller('quizzes')
@@ -25,8 +27,8 @@ export class QuizzesController {
   @ApiBearerAuth()
   @Post()
   @ApiOperation({ summary: 'Create a quiz for a course or lesson' })
-  create(@Body() createQuizDto: CreateQuizDto) {
-    return this.quizzesService.create(createQuizDto);
+  create(@Body() createQuizDto: CreateQuizDto, @User() user: JwtPayload) {
+    return this.quizzesService.create(createQuizDto, user.sub);
   }
 
   @Get()
@@ -54,15 +56,16 @@ export class QuizzesController {
   update(
     @Param('id', new ParseUUIDPipe()) id: string,
     @Body() updateQuizDto: UpdateQuizDto,
+    @User() user: JwtPayload,
   ) {
-    return this.quizzesService.update(id, updateQuizDto);
+    return this.quizzesService.update(id, updateQuizDto, user.sub);
   }
 
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @Delete(':id')
   @ApiOperation({ summary: 'Delete a quiz' })
-  remove(@Param('id', new ParseUUIDPipe()) id: string) {
-    return this.quizzesService.remove(id);
+  remove(@Param('id', new ParseUUIDPipe()) id: string, @User() user: JwtPayload) {
+    return this.quizzesService.remove(id, user.sub);
   }
 }

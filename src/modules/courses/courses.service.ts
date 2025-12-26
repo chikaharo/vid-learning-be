@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
@@ -26,6 +26,15 @@ export class CoursesService {
 
   findAll() {
     return this.coursesRepository.find({
+      where: { isPublished: true },
+      relations: ['instructor'],
+      order: { createdAt: 'DESC' },
+    });
+  }
+
+  findAllByInstructor(instructorId: string) {
+    return this.coursesRepository.find({
+      where: { instructorId },
       relations: ['instructor'],
       order: { createdAt: 'DESC' },
     });
@@ -69,8 +78,13 @@ export class CoursesService {
     return course;
   }
 
-  async update(id: string, dto: UpdateCourseDto) {
+  async update(id: string, dto: UpdateCourseDto, userId?: string) {
     const course = await this.findOne(id);
+    
+    if (userId && course.instructorId !== userId) {
+      throw new ForbiddenException('You can only update your own courses');
+    }
+
     const merged = this.coursesRepository.merge(course, {
       ...dto,
       tags: dto.tags ?? course.tags,
@@ -78,7 +92,13 @@ export class CoursesService {
     return this.coursesRepository.save(merged);
   }
 
-  async remove(id: string) {
+  async remove(id: string, userId?: string) {
+    const course = await this.findOne(id);
+
+    if (userId && course.instructorId !== userId) {
+      throw new ForbiddenException('You can only delete your own courses');
+    }
+
     const result = await this.coursesRepository.delete(id);
     if (!result.affected) {
       throw new NotFoundException(`Course ${id} not found`);

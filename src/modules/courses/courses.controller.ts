@@ -15,6 +15,8 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CreateCourseDto } from './dto/create-course.dto';
 import { UpdateCourseDto } from './dto/update-course.dto';
 import { CoursesService } from './courses.service';
+import { User } from '../../common/decorators/user.decorator';
+import { JwtPayload } from '../auth/interfaces/jwt-payload.interface';
 
 @ApiTags('Courses')
 @Controller('courses')
@@ -25,7 +27,8 @@ export class CoursesController {
   @ApiBearerAuth()
   @Post()
   @ApiOperation({ summary: 'Create a new course' })
-  create(@Body() createCourseDto: CreateCourseDto) {
+  create(@Body() createCourseDto: CreateCourseDto, @User() user: JwtPayload) {
+    createCourseDto.instructorId = user.sub;
     return this.coursesService.create(createCourseDto);
   }
 
@@ -33,6 +36,14 @@ export class CoursesController {
   @ApiOperation({ summary: 'List published and draft courses' })
   findAll() {
     return this.coursesService.findAll();
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @Get('instructor/me')
+  @ApiOperation({ summary: 'List courses where the user is the instructor' })
+  findAllInstructorCourses(@User() user: JwtPayload) {
+    return this.coursesService.findAllByInstructor(user.sub);
   }
 
   @Get('slug/:slug')
@@ -54,15 +65,16 @@ export class CoursesController {
   update(
     @Param('id', new ParseUUIDPipe()) id: string,
     @Body() updateCourseDto: UpdateCourseDto,
+    @User() user: JwtPayload,
   ) {
-    return this.coursesService.update(id, updateCourseDto);
+    return this.coursesService.update(id, updateCourseDto, user.sub);
   }
 
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @Delete(':id')
   @ApiOperation({ summary: 'Delete a course' })
-  remove(@Param('id', new ParseUUIDPipe()) id: string) {
-    return this.coursesService.remove(id);
+  remove(@Param('id', new ParseUUIDPipe()) id: string, @User() user: JwtPayload) {
+    return this.coursesService.remove(id, user.sub);
   }
 }

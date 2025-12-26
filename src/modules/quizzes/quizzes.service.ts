@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
@@ -19,8 +19,13 @@ export class QuizzesService {
     private readonly coursesService: CoursesService,
   ) {}
 
-  async create(dto: CreateQuizDto) {
-    await this.coursesService.findOne(dto.courseId);
+  async create(dto: CreateQuizDto, userId: string) {
+    const course = await this.coursesService.findOne(dto.courseId);
+    
+    if (course.instructorId !== userId) {
+      throw new ForbiddenException('You can only create quizzes for your own courses');
+    }
+
     const { questions = [], ...quizData } = dto;
     const quiz = this.quizRepository.create({
       ...quizData,
@@ -80,17 +85,27 @@ export class QuizzesService {
     if (!quiz) {
       throw new NotFoundException(`Quiz ${id} not found`);
     }
-    console.log('Find One Quiz:', quiz);
     return quiz;
   }
 
-  async update(id: string, dto: UpdateQuizDto) {
+  async update(id: string, dto: UpdateQuizDto, userId: string) {
     const quiz = await this.findOne(id);
+    
+    if (quiz.course.instructorId !== userId) {
+      throw new ForbiddenException('You can only update quizzes for your own courses');
+    }
+
     const merged = this.quizRepository.merge(quiz, dto);
     return this.quizRepository.save(merged);
   }
 
-  async remove(id: string) {
+  async remove(id: string, userId: string) {
+    const quiz = await this.findOne(id);
+
+    if (quiz.course.instructorId !== userId) {
+      throw new ForbiddenException('You can only delete quizzes for your own courses');
+    }
+
     const result = await this.quizRepository.delete(id);
     if (!result.affected) {
       throw new NotFoundException(`Quiz ${id} not found`);
