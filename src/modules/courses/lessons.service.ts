@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ForbiddenException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
@@ -17,9 +21,11 @@ export class LessonsService {
 
   async create(dto: CreateLessonDto, userId: string) {
     const course = await this.coursesService.findOne(dto.courseId);
-    
+
     if (course.instructorId !== userId) {
-      throw new ForbiddenException('You can only add lessons to your own courses');
+      throw new ForbiddenException(
+        'You can only add lessons to your own courses',
+      );
     }
 
     const payload: Partial<Lesson> = {
@@ -54,15 +60,17 @@ export class LessonsService {
 
   async update(id: string, dto: UpdateLessonDto, userId: string) {
     const lesson = await this.findOne(id);
-    
+
     // Ensure we have the course loaded. findOne loads it.
     // However, findOne loads 'course' object. We need to check instructor.
     // The lesson.course object might not have instructor loaded properly unless we ensure it.
     // But wait, findOne in lessons.service uses relations: ['course'].
     // The 'course' entity has 'instructorId' column.
-    
+
     if (lesson.course.instructorId !== userId) {
-         throw new ForbiddenException('You can only update lessons of your own courses');
+      throw new ForbiddenException(
+        'You can only update lessons of your own courses',
+      );
     }
 
     const merged = this.lessonsRepository.merge(lesson, dto);
@@ -73,7 +81,9 @@ export class LessonsService {
     const lesson = await this.findOne(id);
 
     if (lesson.course.instructorId !== userId) {
-         throw new ForbiddenException('You can only delete lessons of your own courses');
+      throw new ForbiddenException(
+        'You can only delete lessons of your own courses',
+      );
     }
 
     const result = await this.lessonsRepository.delete(id);

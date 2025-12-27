@@ -85,9 +85,9 @@ export class UsersService {
 
   private get bcryptSaltRounds(): number {
     return (
-      this.configService.get<number>('auth.bcryptSaltRounds', {
+      (this.configService.get<number>('auth.bcryptSaltRounds', {
         infer: true,
-      }) ?? 12
+      }) as number) ?? 12
     );
   }
 }

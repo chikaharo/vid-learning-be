@@ -101,7 +101,9 @@ describe('CoursesService', () => {
 
   it('throws NotFoundException when course is missing by id', async () => {
     courseRepo.findOne.mockResolvedValue(null);
-    await expect(service.findOne('missing')).rejects.toBeInstanceOf(NotFoundException);
+    await expect(service.findOne('missing')).rejects.toBeInstanceOf(
+      NotFoundException,
+    );
   });
 
   it('updates a course and preserves tags when not provided', async () => {
@@ -113,7 +115,10 @@ describe('CoursesService', () => {
 
     const result = await service.update('c3', { title: 'New Title' } as any);
 
-    expect(courseRepo.merge).toHaveBeenCalledWith(existing, { title: 'New Title', tags: existing.tags });
+    expect(courseRepo.merge).toHaveBeenCalledWith(existing, {
+      title: 'New Title',
+      tags: existing.tags,
+    });
     expect(courseRepo.save).toHaveBeenCalledWith(merged);
     expect(result).toBe(merged);
   });
@@ -121,7 +126,9 @@ describe('CoursesService', () => {
   it('throws NotFoundException when removing a missing course', async () => {
     courseRepo.findOne.mockResolvedValue(null); // Need to mock findOne for remove's internal call
     courseRepo.delete.mockResolvedValue({ affected: 0 });
-    await expect(service.remove('missing')).rejects.toBeInstanceOf(NotFoundException);
+    await expect(service.remove('missing')).rejects.toBeInstanceOf(
+      NotFoundException,
+    );
   });
 
   it('removes an existing course successfully', async () => {

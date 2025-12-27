@@ -1,3 +1,7 @@
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+
 import { NotFoundException } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
@@ -9,7 +13,7 @@ import { QuizOption } from './entities/quiz-option.entity';
 import { QuizQuestion } from './entities/quiz-question.entity';
 import { QuizzesService } from './quizzes.service';
 
-type RepoMock<T = any> = {
+type RepoMock = {
   create: jest.Mock;
   save: jest.Mock;
   find: jest.Mock;
@@ -29,8 +33,8 @@ const createRepoMock = (): RepoMock => ({
 
 describe('QuizzesService', () => {
   let service: QuizzesService;
-  let quizRepository: RepoMock<Quiz>;
-  let questionRepository: RepoMock<QuizQuestion>;
+  let quizRepository: RepoMock;
+  let questionRepository: RepoMock;
   let coursesService: { findOne: jest.Mock };
 
   beforeEach(async () => {
@@ -42,7 +46,10 @@ describe('QuizzesService', () => {
       providers: [
         QuizzesService,
         { provide: getRepositoryToken(Quiz), useValue: quizRepository },
-        { provide: getRepositoryToken(QuizQuestion), useValue: questionRepository },
+        {
+          provide: getRepositoryToken(QuizQuestion),
+          useValue: questionRepository,
+        },
         { provide: CoursesService, useValue: coursesService },
       ],
     }).compile();
@@ -78,8 +85,13 @@ describe('QuizzesService', () => {
     const createdQuiz = { id: 'quiz-1', ...dto, isPublished: false };
     quizRepository.create.mockReturnValue(createdQuiz);
     quizRepository.save.mockResolvedValue(createdQuiz);
-    questionRepository.save.mockImplementation(async (questions) => questions);
-    const finalQuiz = { ...createdQuiz, questions: [{ id: 'q-1' }, { id: 'q-2' }] };
+    questionRepository.save.mockImplementation((questions) =>
+      Promise.resolve(questions),
+    );
+    const finalQuiz = {
+      ...createdQuiz,
+      questions: [{ id: 'q-1' }, { id: 'q-2' }],
+    };
     quizRepository.findOne.mockResolvedValue(finalQuiz);
 
     const result = await service.create(dto as any);
@@ -109,7 +121,9 @@ describe('QuizzesService', () => {
 
   it('throws NotFoundException when quiz is missing', async () => {
     quizRepository.findOne.mockResolvedValue(null);
-    await expect(service.findOne('missing-id')).rejects.toBeInstanceOf(NotFoundException);
+    await expect(service.findOne('missing-id')).rejects.toBeInstanceOf(
+      NotFoundException,
+    );
   });
 
   it('returns all quizzes ordered by creation date', async () => {
@@ -151,24 +165,35 @@ describe('QuizzesService', () => {
     quizRepository.merge.mockReturnValue(merged);
     quizRepository.save.mockResolvedValue(merged);
 
-    const result = await service.update('quiz-1', { title: 'New title' } as any, 'user1'); // Added userId
+    const result = await service.update(
+      'quiz-1',
+      { title: 'New title' } as any,
+      'user1',
+    ); // Added userId
 
     expect(quizRepository.findOne).toHaveBeenCalledWith({
       where: { id: 'quiz-1' },
       relations: ['course', 'lesson', 'questions', 'questions.options'],
     });
-    expect(quizRepository.merge).toHaveBeenCalledWith(existing, { title: 'New title' });
+    expect(quizRepository.merge).toHaveBeenCalledWith(existing, {
+      title: 'New title',
+    });
     expect(quizRepository.save).toHaveBeenCalledWith(merged);
     expect(result).toBe(merged);
   });
 
   it('throws NotFoundException when deleting a missing quiz', async () => {
     quizRepository.findOne.mockResolvedValue(null); // Mock findOne for remove's internal call
-    await expect(service.remove('missing', 'user1')).rejects.toBeInstanceOf(NotFoundException); // Added userId
+    await expect(service.remove('missing', 'user1')).rejects.toBeInstanceOf(
+      NotFoundException,
+    ); // Added userId
   });
 
   it('deletes an existing quiz successfully', async () => {
-    quizRepository.findOne.mockResolvedValue({ id: 'quiz-1', course: { instructorId: 'user1' } }); // Mock findOne
+    quizRepository.findOne.mockResolvedValue({
+      id: 'quiz-1',
+      course: { instructorId: 'user1' },
+    }); // Mock findOne
     quizRepository.delete.mockResolvedValue({ affected: 1 });
 
     await expect(service.remove('quiz-1', 'user1')).resolves.toBeUndefined(); // Added userId

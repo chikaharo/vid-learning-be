@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ForbiddenException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
@@ -21,9 +25,11 @@ export class QuizzesService {
 
   async create(dto: CreateQuizDto, userId: string) {
     const course = await this.coursesService.findOne(dto.courseId);
-    
+
     if (course.instructorId !== userId) {
-      throw new ForbiddenException('You can only create quizzes for your own courses');
+      throw new ForbiddenException(
+        'You can only create quizzes for your own courses',
+      );
     }
 
     const { questions = [], ...quizData } = dto;
@@ -90,9 +96,11 @@ export class QuizzesService {
 
   async update(id: string, dto: UpdateQuizDto, userId: string) {
     const quiz = await this.findOne(id);
-    
+
     if (quiz.course.instructorId !== userId) {
-      throw new ForbiddenException('You can only update quizzes for your own courses');
+      throw new ForbiddenException(
+        'You can only update quizzes for your own courses',
+      );
     }
 
     const merged = this.quizRepository.merge(quiz, dto);
@@ -103,7 +111,9 @@ export class QuizzesService {
     const quiz = await this.findOne(id);
 
     if (quiz.course.instructorId !== userId) {
-      throw new ForbiddenException('You can only delete quizzes for your own courses');
+      throw new ForbiddenException(
+        'You can only delete quizzes for your own courses',
+      );
     }
 
     const result = await this.quizRepository.delete(id);

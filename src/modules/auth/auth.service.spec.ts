@@ -30,7 +30,9 @@ describe('AuthService', () => {
     usersService = { findByEmail: jest.fn(), findOne: jest.fn() };
     jwtService = { signAsync: jest.fn(), verifyAsync: jest.fn() };
     configService = {
-      getOrThrow: jest.fn((key: keyof typeof configValues) => configValues[key]),
+      getOrThrow: jest.fn(
+        (key: keyof typeof configValues) => configValues[key],
+      ),
     };
     (compare as jest.Mock).mockReset();
 
@@ -59,7 +61,10 @@ describe('AuthService', () => {
       .mockResolvedValueOnce('access-token')
       .mockResolvedValueOnce('refresh-token');
 
-    const result = await service.login({ email: user.email, password: 'plaintext' } as any);
+    const result = await service.login({
+      email: user.email,
+      password: 'plaintext',
+    } as any);
 
     const payload = { sub: user.id, email: user.email, role: user.role };
     expect(usersService.findByEmail).toHaveBeenCalledWith(user.email, true);
@@ -101,7 +106,11 @@ describe('AuthService', () => {
   it('refreshes tokens with a valid refresh token', async () => {
     const payload = { sub: 'u1', email: 'a@b.com', role: UserRole.ADMIN };
     jwtService.verifyAsync.mockResolvedValue(payload);
-    usersService.findOne.mockResolvedValue({ id: 'u1', email: payload.email, role: payload.role });
+    usersService.findOne.mockResolvedValue({
+      id: 'u1',
+      email: payload.email,
+      role: payload.role,
+    });
     jwtService.signAsync
       .mockResolvedValueOnce('new-access')
       .mockResolvedValueOnce('new-refresh');
@@ -119,6 +128,8 @@ describe('AuthService', () => {
 
   it('rejects refresh when token is invalid', async () => {
     jwtService.verifyAsync.mockRejectedValue(new Error('bad token'));
-    await expect(service.refresh('bad')).rejects.toBeInstanceOf(UnauthorizedException);
+    await expect(service.refresh('bad')).rejects.toBeInstanceOf(
+      UnauthorizedException,
+    );
   });
 });

@@ -65,7 +65,10 @@ export class QuizzesController {
   @ApiBearerAuth()
   @Delete(':id')
   @ApiOperation({ summary: 'Delete a quiz' })
-  remove(@Param('id', new ParseUUIDPipe()) id: string, @User() user: JwtPayload) {
+  remove(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @User() user: JwtPayload,
+  ) {
     return this.quizzesService.remove(id, user.sub);
   }
 }

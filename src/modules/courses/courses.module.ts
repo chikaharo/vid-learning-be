@@ -27,6 +27,11 @@ import { Enrollment } from '../enrollments/entities/enrollment.entity';
   ],
   controllers: [CoursesController, LessonsController, CourseWishlistController],
   providers: [CoursesService, LessonsService, CourseWishlistService],
-  exports: [CoursesService, LessonsService, CourseWishlistService, TypeOrmModule],
+  exports: [
+    CoursesService,
+    LessonsService,
+    CourseWishlistService,
+    TypeOrmModule,
+  ],
 })
 export class CoursesModule {}

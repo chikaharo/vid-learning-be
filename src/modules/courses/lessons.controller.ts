@@ -19,8 +19,6 @@ import { existsSync, mkdirSync } from 'fs';
 import { extname, join } from 'path';
 import { randomUUID } from 'crypto';
 
-import type { Multer } from 'multer';
-
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CreateLessonDto } from './dto/create-lesson.dto';
 import { UpdateLessonDto } from './dto/update-lesson.dto';
@@ -116,7 +114,7 @@ export class LessonsController {
       },
     }),
   )
-  uploadVideo(@UploadedFile() file: Multer.File) {
+  uploadVideo(@UploadedFile() file: Express.Multer.File) {
     if (!file) {
       throw new BadRequestException('Video file is required');
     }
