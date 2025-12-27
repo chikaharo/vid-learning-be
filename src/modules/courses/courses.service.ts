@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ForbiddenException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
@@ -60,7 +64,12 @@ export class CoursesService {
       throw new NotFoundException(`Course ${slug} not found`);
     }
 
-    console.log('Course fetched:', course.title, 'Instructor:', course.instructor);
+    console.log(
+      'Course fetched:',
+      course.title,
+      'Instructor:',
+      course.instructor,
+    );
     console.log('Instructor ID:', course.instructorId);
 
     if (course.instructorId) {
@@ -116,7 +125,7 @@ export class CoursesService {
 
   async update(id: string, dto: UpdateCourseDto, userId?: string) {
     const course = await this.findOne(id);
-    
+
     if (userId && course.instructorId !== userId) {
       throw new ForbiddenException('You can only update your own courses');
     }

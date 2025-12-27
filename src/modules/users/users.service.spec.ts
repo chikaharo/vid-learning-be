@@ -65,15 +65,26 @@ describe('UsersService', () => {
     };
     repo.findOne.mockResolvedValue(null);
     (hash as jest.Mock).mockResolvedValue('hashed-password');
-    repo.create.mockReturnValue({ id: 'u1', ...dto, password: 'hashed-password' });
-    repo.save.mockResolvedValue({ id: 'u1', ...dto, password: 'hashed-password' });
+    repo.create.mockReturnValue({
+      id: 'u1',
+      ...dto,
+      password: 'hashed-password',
+    });
+    repo.save.mockResolvedValue({
+      id: 'u1',
+      ...dto,
+      password: 'hashed-password',
+    });
 
     const result = await service.create(dto as any);
 
     expect(repo.findOne).toHaveBeenCalledWith({ where: { email: dto.email } });
     expect(hash).toHaveBeenCalledWith(dto.password, 10);
     expect(repo.create).toHaveBeenCalledWith(
-      expect.objectContaining({ email: dto.email, password: 'hashed-password' }),
+      expect.objectContaining({
+        email: dto.email,
+        password: 'hashed-password',
+      }),
     );
     expect(repo.save).toHaveBeenCalled();
     expect(result.password).toBeUndefined();
@@ -82,21 +93,37 @@ describe('UsersService', () => {
   it('throws ConflictException when email already exists', async () => {
     repo.findOne.mockResolvedValue({ id: 'existing' });
     await expect(
-      service.create({ email: 'dup@example.com', password: 'testtest', fullName: 'Dup' } as any),
+      service.create({
+        email: 'dup@example.com',
+        password: 'testtest',
+        fullName: 'Dup',
+      } as any),
     ).rejects.toBeInstanceOf(ConflictException);
   });
 
   it('updates user with hashed password and strips it from the result', async () => {
-    const user = { id: 'u1', email: 'a@b.com', password: 'old', fullName: 'Old', role: UserRole.STUDENT };
+    const user = {
+      id: 'u1',
+      email: 'a@b.com',
+      password: 'old',
+      fullName: 'Old',
+      role: UserRole.STUDENT,
+    };
     repo.findOne.mockResolvedValue(user);
     (hash as jest.Mock).mockResolvedValue('new-hash');
     const merged = { ...user, fullName: 'New Name', password: 'new-hash' };
     repo.merge.mockReturnValue(merged);
     repo.save.mockResolvedValue(merged);
 
-    const result = await service.update('u1', { fullName: 'New Name', password: 'newpw' } as any);
+    const result = await service.update('u1', {
+      fullName: 'New Name',
+      password: 'newpw',
+    } as any);
 
-    expect(repo.merge).toHaveBeenCalledWith(user, expect.objectContaining({ fullName: 'New Name' }));
+    expect(repo.merge).toHaveBeenCalledWith(
+      user,
+      expect.objectContaining({ fullName: 'New Name' }),
+    );
     expect(hash).toHaveBeenCalledWith('newpw', 10);
     expect(result.password).toBeUndefined();
   });
@@ -114,13 +141,17 @@ describe('UsersService', () => {
 
     expect(repo.createQueryBuilder).toHaveBeenCalledWith('user');
     expect(qb.addSelect).toHaveBeenCalledWith('user.password');
-    expect(qb.where).toHaveBeenCalledWith('user.email = :email', { email: 'with@pw.com' });
+    expect(qb.where).toHaveBeenCalledWith('user.email = :email', {
+      email: 'with@pw.com',
+    });
     expect(result).toBe(qbResult);
   });
 
   it('throws NotFoundException when removing a missing user', async () => {
     repo.delete.mockResolvedValue({ affected: 0 });
-    await expect(service.remove('missing')).rejects.toBeInstanceOf(NotFoundException);
+    await expect(service.remove('missing')).rejects.toBeInstanceOf(
+      NotFoundException,
+    );
   });
 
   it('removes an existing user successfully', async () => {

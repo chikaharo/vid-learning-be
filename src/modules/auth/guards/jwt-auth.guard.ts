@@ -10,6 +10,7 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
     context: ExecutionContext,
   ) {
     // Let the base class handle standard errors; customize hook if needed later
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return super.handleRequest(err, user, info, context);
   }
 }

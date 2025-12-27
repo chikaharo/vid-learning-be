@@ -74,7 +74,10 @@ export class CoursesController {
   @ApiBearerAuth()
   @Delete(':id')
   @ApiOperation({ summary: 'Delete a course' })
-  remove(@Param('id', new ParseUUIDPipe()) id: string, @User() user: JwtPayload) {
+  remove(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @User() user: JwtPayload,
+  ) {
     return this.coursesService.remove(id, user.sub);
   }
 }

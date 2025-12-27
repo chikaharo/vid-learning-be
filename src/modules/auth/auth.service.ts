@@ -38,7 +38,7 @@ export class AuthService {
       payload = await this.jwtService.verifyAsync<JwtPayload>(refreshToken, {
         secret: this.refreshSecret,
       });
-    } catch (error) {
+    } catch {
       throw new UnauthorizedException('Invalid refresh token');
     }
 
@@ -65,9 +65,8 @@ export class AuthService {
       }),
     ]);
 
-    const sanitizedUser = { ...user };
-
-    delete (sanitizedUser as any).password;
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { password, ...sanitizedUser } = user;
 
     return {
       user: sanitizedUser,
