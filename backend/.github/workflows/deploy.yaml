@@ -31,6 +31,21 @@ jobs:
       - name: Install Dependencies
         run: npm install
 
+      - name: Lint Code
+        run: npm run lint
+
+      - name: Run Tests
+        run: npm run test:cov
+
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarcloud-github-action@v2.3
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          
+      - name: Security Audit
+        run: npm audit --audit-level=high
+
       # 2. Build the project (creates dist/ or build/ folder)
       - name: Build Source
         run: |
@@ -47,26 +62,6 @@ jobs:
           # role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
           role-to-assume: arn:aws:iam::468629877310:role/huybd-vidlearning-github-role
           aws-region: us-east-1
-
-      - name: Configure SSH
-        run: |
-          mkdir -p ~/.ssh/
-          echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/deploy_key
-          chmod 600 ~/.ssh/deploy_key
-          cat >>~/.ssh/config <<END
-          Host ec2-target
-            HostName ${{ secrets.HOST_DNS }}
-            User ${{ secrets.USERNAME }}
-            IdentityFile ~/.ssh/deploy_key
-            StrictHostKeyChecking no
-          END
-
-      # 3. Copy ONLY the build artifacts and package definition
-      # We do NOT copy node_modules from the runner.
-      # We assume the build output is in a folder named 'dist'.
-      # - name: Copy Artifacts via SCP
-      #   run: |
-      #     scp -r dist package.json package-lock.json ecosystem.config.js ec2-target:${{ secrets.TARGET_DIR }}
 
       - name: Copy to S3
         run: |
