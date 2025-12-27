@@ -37,6 +37,9 @@ export class Course extends BaseEntity {
   @Column({ type: 'jsonb', nullable: true })
   metadata?: Record<string, unknown>;
 
+  @Column({ type: 'simple-array', nullable: true })
+  whatYouWillLearn: string[];
+
   @ManyToOne(() => User, (user) => user.courses, { onDelete: 'SET NULL' })
   instructor: User;
 

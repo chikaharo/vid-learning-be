@@ -25,6 +25,8 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CreateLessonDto } from './dto/create-lesson.dto';
 import { UpdateLessonDto } from './dto/update-lesson.dto';
 import { LessonsService } from './lessons.service';
+import { User } from '../../common/decorators/user.decorator';
+import { JwtPayload } from '../auth/interfaces/jwt-payload.interface';
 
 const lessonVideoDir = join(process.cwd(), 'uploads', 'lessons');
 
@@ -43,14 +45,16 @@ export class LessonsController {
   @ApiBearerAuth()
   @Post()
   @ApiOperation({ summary: 'Create a lesson for a course' })
-  create(@Body() createLessonDto: CreateLessonDto) {
-    return this.lessonsService.create(createLessonDto);
+  create(@Body() createLessonDto: CreateLessonDto, @User() user: JwtPayload) {
+    return this.lessonsService.create(createLessonDto, user.sub);
   }
 
   @Get('course/:courseId')
   @ApiOperation({ summary: 'List lessons for a course' })
-  findByCourse(@Param('courseId', new ParseUUIDPipe()) courseId: string) {
-    return this.lessonsService.findByCourse(courseId);
+  async findByCourse(@Param('courseId') courseId: string) {
+    const result = await this.lessonsService.findByCourse(courseId);
+    console.log('Lessons for course', courseId, ':', result);
+    return result;
   }
 
   @Get(':id')
@@ -66,16 +70,20 @@ export class LessonsController {
   update(
     @Param('id', new ParseUUIDPipe()) id: string,
     @Body() updateLessonDto: UpdateLessonDto,
+    @User() user: JwtPayload,
   ) {
-    return this.lessonsService.update(id, updateLessonDto);
+    return this.lessonsService.update(id, updateLessonDto, user.sub);
   }
 
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @Delete(':id')
   @ApiOperation({ summary: 'Delete a lesson' })
-  remove(@Param('id', new ParseUUIDPipe()) id: string) {
-    return this.lessonsService.remove(id);
+  remove(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @User() user: JwtPayload,
+  ) {
+    return this.lessonsService.remove(id, user.sub);
   }
 
   @UseGuards(JwtAuthGuard)

@@ -9,6 +9,9 @@ export class CourseModule extends BaseEntity {
   @Column()
   title: string;
 
+  @Column({ type: 'text', nullable: true })
+  description: string;
+
   @Column({ type: 'int', default: 0 })
   order: number;
 
