@@ -6,12 +6,15 @@ import { UsersService } from '../users/users.service';
 import { CreateCourseDto } from './dto/create-course.dto';
 import { UpdateCourseDto } from './dto/update-course.dto';
 import { Course } from './entities/course.entity';
+import { Enrollment } from '../enrollments/entities/enrollment.entity';
 
 @Injectable()
 export class CoursesService {
   constructor(
     @InjectRepository(Course)
     private readonly coursesRepository: Repository<Course>,
+    @InjectRepository(Enrollment)
+    private readonly enrollmentsRepository: Repository<Enrollment>,
     private readonly usersService: UsersService,
   ) {}
 
@@ -56,7 +59,40 @@ export class CoursesService {
     if (!course) {
       throw new NotFoundException(`Course ${slug} not found`);
     }
+
+    console.log('Course fetched:', course.title, 'Instructor:', course.instructor);
+    console.log('Instructor ID:', course.instructorId);
+
+    if (course.instructorId) {
+      const stats = await this.getInstructorStats(course.instructorId);
+      course.metadata = {
+        ...course.metadata,
+        instructorStudents: stats.students,
+        instructorReviews: stats.reviews,
+      };
+    }
+
     return course;
+  }
+
+  private async getInstructorStats(instructorId: string) {
+    const students = await this.enrollmentsRepository
+      .createQueryBuilder('enrollment')
+      .innerJoin('enrollment.course', 'course')
+      .where('course.instructorId = :instructorId', { instructorId })
+      .getCount();
+
+    const courses = await this.coursesRepository.find({
+      where: { instructorId },
+      select: ['metadata'],
+    });
+
+    const reviews = courses.reduce((acc, c) => {
+      const count = Number(c.metadata?.ratingCount) || 0;
+      return acc + count;
+    }, 0);
+
+    return { students, reviews };
   }
 
   async findOne(id: string) {

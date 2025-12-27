@@ -133,20 +133,25 @@ describe('QuizzesService', () => {
 
     expect(quizRepository.find).toHaveBeenCalledWith({
       where: { courseId: 'course-1' },
-      relations: ['lesson'],
+      relations: ['lesson', 'questions'], // Added 'questions'
       order: { createdAt: 'DESC' },
     });
     expect(result).toBe(quizzes);
   });
 
   it('updates an existing quiz by merging incoming data', async () => {
-    const existing = { id: 'quiz-1', title: 'Old title', isPublished: false };
+    const existing = {
+      id: 'quiz-1',
+      title: 'Old title',
+      isPublished: false,
+      course: { instructorId: 'user1' }, // Mock course with instructorId
+    };
     const merged = { ...existing, title: 'New title' };
     quizRepository.findOne.mockResolvedValue(existing);
     quizRepository.merge.mockReturnValue(merged);
     quizRepository.save.mockResolvedValue(merged);
 
-    const result = await service.update('quiz-1', { title: 'New title' } as any);
+    const result = await service.update('quiz-1', { title: 'New title' } as any, 'user1'); // Added userId
 
     expect(quizRepository.findOne).toHaveBeenCalledWith({
       where: { id: 'quiz-1' },
@@ -158,15 +163,15 @@ describe('QuizzesService', () => {
   });
 
   it('throws NotFoundException when deleting a missing quiz', async () => {
-    quizRepository.delete.mockResolvedValue({ affected: 0 });
-
-    await expect(service.remove('missing')).rejects.toBeInstanceOf(NotFoundException);
+    quizRepository.findOne.mockResolvedValue(null); // Mock findOne for remove's internal call
+    await expect(service.remove('missing', 'user1')).rejects.toBeInstanceOf(NotFoundException); // Added userId
   });
 
   it('deletes an existing quiz successfully', async () => {
+    quizRepository.findOne.mockResolvedValue({ id: 'quiz-1', course: { instructorId: 'user1' } }); // Mock findOne
     quizRepository.delete.mockResolvedValue({ affected: 1 });
 
-    await expect(service.remove('quiz-1')).resolves.toBeUndefined();
+    await expect(service.remove('quiz-1', 'user1')).resolves.toBeUndefined(); // Added userId
     expect(quizRepository.delete).toHaveBeenCalledWith('quiz-1');
   });
 

@@ -5,6 +5,7 @@ import { getRepositoryToken } from '@nestjs/typeorm';
 import { Course } from './entities/course.entity';
 import { CoursesService } from './courses.service';
 import { UsersService } from '../users/users.service';
+import { Enrollment } from '../enrollments/entities/enrollment.entity'; // Import Enrollment entity
 
 type RepoMock = {
   find: jest.Mock;
@@ -26,17 +27,28 @@ const createRepoMock = (): RepoMock => ({
 
 describe('CoursesService', () => {
   let service: CoursesService;
-  let repo: RepoMock;
+  let courseRepo: RepoMock;
+  let enrollmentRepo: {
+    createQueryBuilder: jest.Mock;
+  };
   let usersService: { findOne: jest.Mock };
 
   beforeEach(async () => {
-    repo = createRepoMock();
+    courseRepo = createRepoMock();
     usersService = { findOne: jest.fn() };
+    enrollmentRepo = {
+      createQueryBuilder: jest.fn(() => ({
+        innerJoin: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnThis(),
+        getCount: jest.fn().mockResolvedValue(0), // Default mock for getCount
+      })),
+    };
 
     const moduleRef = await Test.createTestingModule({
       providers: [
         CoursesService,
-        { provide: getRepositoryToken(Course), useValue: repo },
+        { provide: getRepositoryToken(Course), useValue: courseRepo },
+        { provide: getRepositoryToken(Enrollment), useValue: enrollmentRepo }, // Provide EnrollmentRepository
         { provide: UsersService, useValue: usersService },
       ],
     }).compile();
@@ -55,57 +67,67 @@ describe('CoursesService', () => {
     };
     usersService.findOne.mockResolvedValue({ id: dto.instructorId });
     const created = { id: 'c1', ...dto, tags: [] };
-    repo.create.mockReturnValue(created);
-    repo.save.mockResolvedValue(created);
+    courseRepo.create.mockReturnValue(created);
+    courseRepo.save.mockResolvedValue(created);
 
     const result = await service.create(dto as any);
 
     expect(usersService.findOne).toHaveBeenCalledWith(dto.instructorId);
-    expect(repo.create).toHaveBeenCalledWith({ ...dto, tags: [] });
-    expect(repo.save).toHaveBeenCalledWith(created);
+    expect(courseRepo.create).toHaveBeenCalledWith({ ...dto, tags: [] });
+    expect(courseRepo.save).toHaveBeenCalledWith(created);
     expect(result).toEqual(created);
   });
 
   it('returns course by slug when found', async () => {
     const course = { id: 'c2', slug: 'course-2' };
-    repo.findOne.mockResolvedValue(course);
+    courseRepo.findOne.mockResolvedValue(course);
 
     const result = await service.findBySlug('course-2');
 
-    expect(repo.findOne).toHaveBeenCalledWith({
+    expect(courseRepo.findOne).toHaveBeenCalledWith({
       where: { slug: 'course-2' },
-      relations: ['instructor', 'modules', 'lessons'],
+      relations: ['instructor', 'modules', 'modules.lessons', 'lessons'],
+      order: {
+        modules: {
+          order: 'ASC',
+          lessons: {
+            order: 'ASC',
+          },
+        },
+      },
     });
-    expect(result).toBe(course);
+    expect(result).toEqual(expect.objectContaining(course)); // Adjusted to match the new findBySlug return structure
   });
 
   it('throws NotFoundException when course is missing by id', async () => {
-    repo.findOne.mockResolvedValue(null);
+    courseRepo.findOne.mockResolvedValue(null);
     await expect(service.findOne('missing')).rejects.toBeInstanceOf(NotFoundException);
   });
 
   it('updates a course and preserves tags when not provided', async () => {
     const existing = { id: 'c3', title: 'Old', tags: ['a'] };
-    repo.findOne.mockResolvedValue(existing);
+    courseRepo.findOne.mockResolvedValue(existing);
     const merged = { ...existing, title: 'New Title', tags: ['a'] };
-    repo.merge.mockReturnValue(merged);
-    repo.save.mockResolvedValue(merged);
+    courseRepo.merge.mockReturnValue(merged);
+    courseRepo.save.mockResolvedValue(merged);
 
     const result = await service.update('c3', { title: 'New Title' } as any);
 
-    expect(repo.merge).toHaveBeenCalledWith(existing, { title: 'New Title', tags: existing.tags });
-    expect(repo.save).toHaveBeenCalledWith(merged);
+    expect(courseRepo.merge).toHaveBeenCalledWith(existing, { title: 'New Title', tags: existing.tags });
+    expect(courseRepo.save).toHaveBeenCalledWith(merged);
     expect(result).toBe(merged);
   });
 
   it('throws NotFoundException when removing a missing course', async () => {
-    repo.delete.mockResolvedValue({ affected: 0 });
+    courseRepo.findOne.mockResolvedValue(null); // Need to mock findOne for remove's internal call
+    courseRepo.delete.mockResolvedValue({ affected: 0 });
     await expect(service.remove('missing')).rejects.toBeInstanceOf(NotFoundException);
   });
 
   it('removes an existing course successfully', async () => {
-    repo.delete.mockResolvedValue({ affected: 1 });
-    await expect(service.remove('c4')).resolves.toBeUndefined();
-    expect(repo.delete).toHaveBeenCalledWith('c4');
+    courseRepo.findOne.mockResolvedValue({ id: 'c4', instructorId: 'user1' }); // Mock findOne for remove's internal call
+    courseRepo.delete.mockResolvedValue({ affected: 1 });
+    await expect(service.remove('c4', 'user1')).resolves.toBeUndefined(); // Added userId to remove
+    expect(courseRepo.delete).toHaveBeenCalledWith('c4');
   });
 });

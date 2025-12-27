@@ -12,10 +12,17 @@ import { Lesson } from './entities/lesson.entity';
 import { CourseWishlist } from './entities/course-wishlist.entity';
 import { CourseWishlistService } from './course-wishlist.service';
 import { CourseWishlistController } from './course-wishlist.controller';
+import { Enrollment } from '../enrollments/entities/enrollment.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Course, CourseModule, Lesson, CourseWishlist]),
+    TypeOrmModule.forFeature([
+      Course,
+      CourseModule,
+      Lesson,
+      CourseWishlist,
+      Enrollment,
+    ]),
     UsersModule,
   ],
   controllers: [CoursesController, LessonsController, CourseWishlistController],
