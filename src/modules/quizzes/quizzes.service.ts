@@ -72,7 +72,7 @@ export class QuizzesService {
   findByCourse(courseId: string) {
     return this.quizRepository.find({
       where: { courseId },
-      relations: ['lesson'],
+      relations: ['lesson', 'questions'],
       order: { createdAt: 'DESC' },
     });
   }
