@@ -1,29 +1,23 @@
-users(id, email, password, name, avatar_url, role, created_at)
+users(id, created_at, updated_at, email, password, full_name, role ENUM('student', 'instructor', 'admin'), avatar_url, bio, is_active)
 
-instructors(user_id PK/FK → users.id, bio, socials_json)
+courses(id, created_at, updated_at, title, slug, description, level ENUM('beginner', 'intermediate', 'advanced'), thumbnail_url, duration_minutes, is_published, tags, metadata, what_you_will_learn, instructor_id FK -> users.id)
 
-courses(id, instructor_id FK, title, slug, description, level, price, is_published, thumbnail_url, created_at, updated_at, avg_rating, rating_count)
+course_modules(id, created_at, updated_at, title, description, order, course_id FK -> courses.id)
 
-course_categories(id, name, slug)
+lessons(id, created_at, updated_at, title, order, duration_minutes, is_preview, video_url, content, course_id FK -> courses.id, module_id FK -> course_modules.id)
 
-course_category_map(course_id FK, category_id FK, PRIMARY KEY(course_id, category_id))
+course_wishlists(id, created_at, updated_at, user_id FK -> users.id, course_id FK -> courses.id, UNIQUE(user_id, course_id))
 
-lessons(id, course_id FK, title, order_index, video_id FK NULL, duration, is_preview BOOL)
+enrollments(id, created_at, updated_at, user_id FK -> users.id, course_id FK -> courses.id, status ENUM('pending', 'active', 'completed', 'cancelled'), progress_percent, completed_lesson_ids, last_accessed_at, completed_at)
 
-videos(id, video_url)
+video_assets(id, created_at, updated_at, lesson_id FK -> lessons.id, storage_key, source_url, cdn_url, duration_seconds, status ENUM('pending', 'processing', 'ready', 'failed'), transcript_url, checkpoints)
 
-enrollments(id, user_id FK, course_id FK, status ENUM('active','refunded','cancelled'), created_at)
+quizzes(id, created_at, updated_at, title, description, time_limit_seconds, is_published, course_id FK -> courses.id, lesson_id FK -> lessons.id)
 
-lesson_progress(user_id, lesson_id, last_position_sec, is_completed BOOL, updated_at, PRIMARY KEY(user_id, lesson_id))
+quiz_questions(id, created_at, updated_at, prompt, type ENUM('single_choice', 'multiple_choice', 'true_false', 'short_answer'), order, points, quiz_id FK -> quizzes.id)
 
-quizzes(id, owner_type ENUM('course','lesson'), owner_id, title, time_limit NULL, max_attempts NULL, pass_percent INT, randomize BOOL)
+quiz_options(id, created_at, updated_at, label, explanation, is_correct, question_id FK -> quiz_questions.id)
 
-questions(id, quiz_id FK, text, type ENUM('single','multi','true_false','short'), points INT, answer)
+quiz_attempts(id, created_at, updated_at, quiz_id FK -> quizzes.id, user_id FK -> users.id, status ENUM('in_progress', 'submitted', 'graded'), score, max_score, started_at, submitted_at)
 
-quiz_attempts(id, quiz_id FK, user_id FK, started_at, submitted_at, score_percent, passed BOOL, answers_json)
-
-certificates(id, user_id FK, course_id FK, issued_at, serial_code)
-
-comments(id, lesson_id FK, user_id FK, body, created_at)
-
-orders(id, user_id FK, course_id FK, amount, status ENUM('pending','paid','failed','refunded'), created_at)
+quiz_answers(id, created_at, updated_at, attempt_id FK -> quiz_attempts.id, question_id FK -> quiz_questions.id, option_id FK -> quiz_options.id, free_text)

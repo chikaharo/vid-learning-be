@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
@@ -15,8 +15,13 @@ export class LessonsService {
     private readonly coursesService: CoursesService,
   ) {}
 
-  async create(dto: CreateLessonDto) {
-    await this.coursesService.findOne(dto.courseId);
+  async create(dto: CreateLessonDto, userId: string) {
+    const course = await this.coursesService.findOne(dto.courseId);
+    
+    if (course.instructorId !== userId) {
+      throw new ForbiddenException('You can only add lessons to your own courses');
+    }
+
     const payload: Partial<Lesson> = {
       ...dto,
       durationMinutes: dto.durationMinutes ?? 5,
@@ -47,13 +52,30 @@ export class LessonsService {
     return lesson;
   }
 
-  async update(id: string, dto: UpdateLessonDto) {
+  async update(id: string, dto: UpdateLessonDto, userId: string) {
     const lesson = await this.findOne(id);
+    
+    // Ensure we have the course loaded. findOne loads it.
+    // However, findOne loads 'course' object. We need to check instructor.
+    // The lesson.course object might not have instructor loaded properly unless we ensure it.
+    // But wait, findOne in lessons.service uses relations: ['course'].
+    // The 'course' entity has 'instructorId' column.
+    
+    if (lesson.course.instructorId !== userId) {
+         throw new ForbiddenException('You can only update lessons of your own courses');
+    }
+
     const merged = this.lessonsRepository.merge(lesson, dto);
     return this.lessonsRepository.save(merged);
   }
 
-  async remove(id: string) {
+  async remove(id: string, userId: string) {
+    const lesson = await this.findOne(id);
+
+    if (lesson.course.instructorId !== userId) {
+         throw new ForbiddenException('You can only delete lessons of your own courses');
+    }
+
     const result = await this.lessonsRepository.delete(id);
     if (!result.affected) {
       throw new NotFoundException(`Lesson ${id} not found`);
