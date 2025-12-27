@@ -1,0 +1,23 @@
+users(id, created_at, updated_at, email, password, full_name, role ENUM('student', 'instructor', 'admin'), avatar_url, bio, is_active)
+
+courses(id, created_at, updated_at, title, slug, description, level ENUM('beginner', 'intermediate', 'advanced'), thumbnail_url, duration_minutes, is_published, tags, metadata, what_you_will_learn, instructor_id FK -> users.id)
+
+course_modules(id, created_at, updated_at, title, description, order, course_id FK -> courses.id)
+
+lessons(id, created_at, updated_at, title, order, duration_minutes, is_preview, video_url, content, course_id FK -> courses.id, module_id FK -> course_modules.id)
+
+course_wishlists(id, created_at, updated_at, user_id FK -> users.id, course_id FK -> courses.id, UNIQUE(user_id, course_id))
+
+enrollments(id, created_at, updated_at, user_id FK -> users.id, course_id FK -> courses.id, status ENUM('pending', 'active', 'completed', 'cancelled'), progress_percent, completed_lesson_ids, last_accessed_at, completed_at)
+
+video_assets(id, created_at, updated_at, lesson_id FK -> lessons.id, storage_key, source_url, cdn_url, duration_seconds, status ENUM('pending', 'processing', 'ready', 'failed'), transcript_url, checkpoints)
+
+quizzes(id, created_at, updated_at, title, description, time_limit_seconds, is_published, course_id FK -> courses.id, lesson_id FK -> lessons.id)
+
+quiz_questions(id, created_at, updated_at, prompt, type ENUM('single_choice', 'multiple_choice', 'true_false', 'short_answer'), order, points, quiz_id FK -> quizzes.id)
+
+quiz_options(id, created_at, updated_at, label, explanation, is_correct, question_id FK -> quiz_questions.id)
+
+quiz_attempts(id, created_at, updated_at, quiz_id FK -> quizzes.id, user_id FK -> users.id, status ENUM('in_progress', 'submitted', 'graded'), score, max_score, started_at, submitted_at)
+
+quiz_answers(id, created_at, updated_at, attempt_id FK -> quiz_attempts.id, question_id FK -> quiz_questions.id, option_id FK -> quiz_options.id, free_text)

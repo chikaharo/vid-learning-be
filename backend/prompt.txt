@@ -1,0 +1,4 @@
+I want to build a video learning and testing website backend API using NestJS, Typescript, Postgres
+
+Let init the project and install dependencies
+

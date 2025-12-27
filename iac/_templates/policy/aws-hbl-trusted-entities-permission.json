@@ -1,0 +1,32 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Principal": {
+        "AWS": "arn:aws:iam::692859942784:root"
+      },
+      "Action": "sts:AssumeRole",
+      "Condition": {}
+    },
+    {
+      "Sid": "DenyIfNotFromHblabOffice",
+      "Effect": "Deny",
+      "Principal": {
+        "AWS": "arn:aws:iam::692859942784:root"
+      },
+      "Action": "sts:AssumeRole",
+      "Condition": {
+        "NotIpAddress": {
+          "aws:SourceIp": [
+            "118.70.135.21/32",
+            "183.91.3.171/32",
+            "101.96.117.124/32",
+            "119.17.205.204/32",
+            "222.252.30.184/32"
+          ]
+        }
+      }
+    }
+  ]
+}
