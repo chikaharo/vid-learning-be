@@ -100,6 +100,10 @@ jobs:
               "su - ec2-user -c \"cd ${{ env.PROJECT_PATH }} && npm install --production\"",
 
               "# 6. Restart Application with PM2",
+              "# 6. Run Migrations",
+              "su - ec2-user -c \"cd ${{ env.PROJECT_PATH }} && npm run migration:run\"",
+
+              "# 7. Restart Application with PM2",
               "su - ec2-user -c \"pm2 restart vid-learning-be || pm2 start ${{ env.PROJECT_PATH }}/dist/index.js --name vid-learning-be -- start -p 8080\"",
               "su - ec2-user -c \"pm2 save\"",
 
