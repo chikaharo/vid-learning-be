@@ -1,4 +1,4 @@
-import { Column, Entity, ManyToOne, OneToMany } from 'typeorm';
+import { Column, Entity, JoinColumn, ManyToOne, OneToMany } from 'typeorm';
 
 import { BaseEntity } from '../../../common/entities/base.entity';
 import { Quiz } from '../../quizzes/entities/quiz.entity';
@@ -26,6 +26,7 @@ export class Lesson extends BaseEntity {
   content?: string | null;
 
   @ManyToOne(() => Course, (course) => course.lessons, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'course_id' })
   course: Course;
 
   @Column({ name: 'course_id' })
@@ -34,6 +35,7 @@ export class Lesson extends BaseEntity {
   @ManyToOne(() => CourseModule, (module) => module.lessons, {
     onDelete: 'SET NULL',
   })
+  @JoinColumn({ name: 'module_id' })
   module: CourseModule;
 
   @Column({ name: 'module_id', nullable: true })

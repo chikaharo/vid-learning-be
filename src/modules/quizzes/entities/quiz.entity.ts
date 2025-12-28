@@ -1,4 +1,4 @@
-import { Column, Entity, ManyToOne, OneToMany } from 'typeorm';
+import { Column, Entity, JoinColumn, ManyToOne, OneToMany } from 'typeorm';
 
 import { BaseEntity } from '../../../common/entities/base.entity';
 import { Course } from '../../courses/entities/course.entity';
@@ -20,13 +20,18 @@ export class Quiz extends BaseEntity {
   @Column({ name: 'is_published', default: false })
   isPublished: boolean;
 
+  @Column({ type: 'int', default: 0 })
+  order: number;
+
   @ManyToOne(() => Course, (course) => course.quizzes, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'course_id' })
   course: Course;
 
   @Column({ name: 'course_id' })
   courseId: string;
 
   @ManyToOne(() => Lesson, (lesson) => lesson.quizzes, { onDelete: 'SET NULL' })
+  @JoinColumn({ name: 'lesson_id' })
   lesson: Lesson;
 
   @Column({ name: 'lesson_id', nullable: true })

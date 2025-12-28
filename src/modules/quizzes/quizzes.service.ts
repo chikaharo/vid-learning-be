@@ -97,6 +97,10 @@ export class QuizzesService {
   async update(id: string, dto: UpdateQuizDto, userId: string) {
     const quiz = await this.findOne(id);
 
+    if (!quiz.course) {
+      throw new NotFoundException('Course for this quiz not found');
+    }
+
     if (quiz.course.instructorId !== userId) {
       throw new ForbiddenException(
         'You can only update quizzes for your own courses',
