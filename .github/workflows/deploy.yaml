@@ -99,7 +99,6 @@ jobs:
               "# 5. Install Production Deps",
               "su - ec2-user -c \"cd ${{ env.PROJECT_PATH }} && npm install --production\"",
 
-              "# 6. Restart Application with PM2",
               "# 6. Run Migrations",
               "su - ec2-user -c \"cd ${{ env.PROJECT_PATH }} && npm run migration:run\"",
 
