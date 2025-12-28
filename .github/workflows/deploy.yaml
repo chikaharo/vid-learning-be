@@ -97,7 +97,7 @@ jobs:
               "echo \"${{ secrets.ENV_FILE }}\" > ${{ env.PROJECT_PATH }}/.env",
 
               "# 5. Install Production Deps",
-              "su - ec2-user -c \"cd ${{ env.PROJECT_PATH }} && npm install --production\"",
+              "su - ec2-user -c \"cd ${{ env.PROJECT_PATH }} && npm install\"",
 
               "# 6. Run Migrations",
               "su - ec2-user -c \"cd ${{ env.PROJECT_PATH }} && npm run migration:run\"",
