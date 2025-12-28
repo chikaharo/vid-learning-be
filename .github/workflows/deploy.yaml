@@ -58,7 +58,7 @@ jobs:
 
       - name: Zip Artifact
         run: |
-          zip -r deployment-package.zip dist package.json package-lock.json
+          zip -r deployment-package.zip dist src/config package.json package-lock.json
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
