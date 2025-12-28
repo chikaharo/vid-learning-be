@@ -28,6 +28,12 @@ export class Course extends BaseEntity {
   @Column({ name: 'duration_minutes', type: 'int', default: 0 })
   durationMinutes: number;
 
+  @Column({ type: 'decimal', precision: 3, scale: 2, default: 0 })
+  rating: number;
+
+  @Column({ name: 'rating_count', type: 'int', default: 0 })
+  ratingCount: number;
+
   @Column({ type: 'boolean', default: false })
   isPublished: boolean;
 

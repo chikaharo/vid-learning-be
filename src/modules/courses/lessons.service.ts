@@ -61,11 +61,13 @@ export class LessonsService {
   async update(id: string, dto: UpdateLessonDto, userId: string) {
     const lesson = await this.findOne(id);
 
-    // Ensure we have the course loaded. findOne loads it.
-    // However, findOne loads 'course' object. We need to check instructor.
-    // The lesson.course object might not have instructor loaded properly unless we ensure it.
-    // But wait, findOne in lessons.service uses relations: ['course'].
-    // The 'course' entity has 'instructorId' column.
+    // If lesson.course is somehow missing (e.g. data issue), we can't check permissions properly.
+    // Assuming for now that if we can't find the course, we can't verify ownership.
+    if (!lesson.course) {
+      // Try to reload with course explicitly if it wasn't loaded?
+      // findOne already requests it.
+      throw new NotFoundException('Course for this lesson not found');
+    }
 
     if (lesson.course.instructorId !== userId) {
       throw new ForbiddenException(

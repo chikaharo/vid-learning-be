@@ -15,6 +15,8 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CreateEnrollmentDto } from './dto/create-enrollment.dto';
 import { UpdateEnrollmentDto } from './dto/update-enrollment.dto';
 import { EnrollmentsService } from './enrollments.service';
+import { User } from '../../common/decorators/user.decorator';
+import type { JwtPayload } from '../auth/interfaces/jwt-payload.interface';
 
 @ApiTags('Enrollments')
 @Controller('enrollments')
@@ -27,6 +29,14 @@ export class EnrollmentsController {
   @ApiOperation({ summary: 'Enroll a user in a course' })
   enroll(@Body() createEnrollmentDto: CreateEnrollmentDto) {
     return this.enrollmentsService.enroll(createEnrollmentDto);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @Get('user/me')
+  @ApiOperation({ summary: 'List enrollments for current user' })
+  findMyEnrollments(@User() user: JwtPayload) {
+    return this.enrollmentsService.findForUser(user.sub);
   }
 
   @UseGuards(JwtAuthGuard)

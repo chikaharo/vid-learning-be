@@ -38,6 +38,11 @@ export class CreateQuizDto {
   isPublished?: boolean;
 
   @IsOptional()
+  @IsInt()
+  @Min(0)
+  order?: number;
+
+  @IsOptional()
   @ValidateNested({ each: true })
   @Type(() => CreateQuizQuestionDto)
   questions?: CreateQuizQuestionDto[];
