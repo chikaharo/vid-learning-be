@@ -51,7 +51,6 @@ export class LessonsController {
   @ApiOperation({ summary: 'List lessons for a course' })
   async findByCourse(@Param('courseId') courseId: string) {
     const result = await this.lessonsService.findByCourse(courseId);
-    console.log('Lessons for course', courseId, ':', result);
     return result;
   }
 

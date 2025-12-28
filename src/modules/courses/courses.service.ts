@@ -64,14 +64,6 @@ export class CoursesService {
       throw new NotFoundException(`Course ${slug} not found`);
     }
 
-    console.log(
-      'Course fetched:',
-      course.title,
-      'Instructor:',
-      course.instructor,
-    );
-    console.log('Instructor ID:', course.instructorId);
-
     if (course.instructorId) {
       const stats = await this.getInstructorStats(course.instructorId);
       course.metadata = {
