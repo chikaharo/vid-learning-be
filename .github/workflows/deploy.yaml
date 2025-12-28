@@ -58,7 +58,7 @@ jobs:
 
       - name: Zip Artifact
         run: |
-          zip -r deployment-package.zip dist src/config package.json package-lock.json
+          zip -r deployment-package.zip dist src package.json package-lock.json
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -100,7 +100,7 @@ jobs:
               "su - ec2-user -c \"cd ${{ env.PROJECT_PATH }} && npm install\"",
 
               "# 6. Run Migrations",
-              "su - ec2-user -c \"cd ${{ env.PROJECT_PATH }} && npm run migration:run\"",
+              "su - ec2-user -c \"cd ${{ env.PROJECT_PATH }} && npx typeorm migration:run -d dist/src/config/typeorm.config.js\"",
 
               "# 7. Restart Application with PM2",
               "su - ec2-user -c \"pm2 restart vid-learning-be || pm2 start ${{ env.PROJECT_PATH }}/dist/index.js --name vid-learning-be -- start -p 8080\"",
