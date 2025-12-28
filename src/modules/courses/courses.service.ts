@@ -136,9 +136,13 @@ export class CoursesService {
       throw new ForbiddenException('You can only delete your own courses');
     }
 
-    const result = await this.coursesRepository.delete(id);
-    if (!result.affected) {
-      throw new NotFoundException(`Course ${id} not found`);
-    }
+    await this.coursesRepository.delete(id);
+  }
+
+  async updateRating(id: string, rating: number, count: number) {
+    await this.coursesRepository.update(id, {
+      rating,
+      ratingCount: count,
+    });
   }
 }

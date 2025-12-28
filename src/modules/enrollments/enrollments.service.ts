@@ -66,4 +66,11 @@ export class EnrollmentsService {
       throw new NotFoundException(`Enrollment ${id} not found`);
     }
   }
+
+  async isEnrolled(userId: string, courseId: string): Promise<boolean> {
+    const count = await this.enrollmentsRepository.count({
+      where: { userId, courseId },
+    });
+    return count > 0;
+  }
 }

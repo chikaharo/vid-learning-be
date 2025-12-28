@@ -13,6 +13,7 @@ import { QuizAttemptsModule } from './modules/quiz-attempts/quiz-attempts.module
 import { QuizzesModule } from './modules/quizzes/quizzes.module';
 import { UsersModule } from './modules/users/users.module';
 import { VideosModule } from './modules/videos/videos.module';
+import { ReviewsModule } from './modules/reviews/reviews.module';
 
 @Module({
   imports: [
@@ -49,6 +50,7 @@ import { VideosModule } from './modules/videos/videos.module';
     QuizAttemptsModule,
     EnrollmentsModule,
     VideosModule,
+    ReviewsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
