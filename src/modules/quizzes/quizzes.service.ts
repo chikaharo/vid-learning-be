@@ -107,8 +107,38 @@ export class QuizzesService {
       );
     }
 
-    const merged = this.quizRepository.merge(quiz, dto);
-    return this.quizRepository.save(merged);
+    const { questions, ...quizData } = dto;
+
+    const merged = this.quizRepository.merge(quiz, quizData);
+    await this.quizRepository.save(merged);
+
+    if (questions) {
+      if (quiz.questions && quiz.questions.length > 0) {
+        await this.questionRepository.remove(quiz.questions);
+      }
+
+      const questionEntities = questions.map((question, index) => {
+        const q = new QuizQuestion();
+        q.prompt = question.prompt;
+        q.order = question.order ?? index;
+        q.points = question.points ?? 1;
+        q.type = QuestionType.SINGLE_CHOICE;
+        q.quiz = quiz; // Associate with the *existing* (now updated) quiz entity
+        q.options =
+          question.options?.map((option) => {
+            const opt = new QuizOption();
+            opt.label = option.label;
+            opt.explanation = option.explanation;
+            opt.isCorrect = option.isCorrect ?? false;
+            opt.question = q;
+            return opt;
+          }) ?? [];
+        return q;
+      });
+      await this.questionRepository.save(questionEntities);
+    }
+
+    return this.findOne(id);
   }
 
   async remove(id: string, userId: string) {
