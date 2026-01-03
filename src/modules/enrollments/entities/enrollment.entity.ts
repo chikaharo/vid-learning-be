@@ -1,4 +1,4 @@
-import { Column, Entity, ManyToOne } from 'typeorm';
+import { Column, Entity, JoinColumn, ManyToOne } from 'typeorm';
 
 import { BaseEntity } from '../../../common/entities/base.entity';
 import { EnrollmentStatus } from '../../../common/enums/enrollment-status.enum';
@@ -8,17 +8,19 @@ import { User } from '../../users/entities/user.entity';
 @Entity('enrollments')
 export class Enrollment extends BaseEntity {
   @ManyToOne(() => User, (user) => user.enrollments, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'user_id' })
   user: User;
 
-  @Column({ name: 'user_id' })
+  @Column({ name: 'user_id', type: 'uuid', nullable: true })
   userId: string;
 
   @ManyToOne(() => Course, (course) => course.enrollments, {
     onDelete: 'CASCADE',
   })
+  @JoinColumn({ name: 'course_id' })
   course: Course;
 
-  @Column({ name: 'course_id' })
+  @Column({ name: 'course_id', type: 'uuid', nullable: true })
   courseId: string;
 
   @Column({

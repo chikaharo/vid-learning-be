@@ -49,6 +49,14 @@ export class EnrollmentsController {
 
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
+  @Get('course/:courseId')
+  @ApiOperation({ summary: 'List enrollments for a course' })
+  findCourseEnrollments(@Param('courseId', new ParseUUIDPipe()) courseId: string) {
+    return this.enrollmentsService.findForCourse(courseId);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
   @Patch(':id')
   @ApiOperation({ summary: 'Update an enrollment' })
   update(

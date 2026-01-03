@@ -49,6 +49,14 @@ export class EnrollmentsService {
     });
   }
 
+  findForCourse(courseId: string) {
+    return this.enrollmentsRepository.find({
+      where: { courseId },
+      relations: ['user'],
+      order: { createdAt: 'DESC' },
+    });
+  }
+
   async update(id: string, dto: UpdateEnrollmentDto) {
     const enrollment = await this.enrollmentsRepository.findOne({
       where: { id },
