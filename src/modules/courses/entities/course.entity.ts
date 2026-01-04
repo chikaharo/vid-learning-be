@@ -34,6 +34,9 @@ export class Course extends BaseEntity {
   @Column({ name: 'rating_count', type: 'int', default: 0 })
   ratingCount: number;
 
+  @Column({ type: 'decimal', precision: 10, scale: 2, default: 0 })
+  price: number;
+
   @Column({ type: 'boolean', default: false })
   isPublished: boolean;
 

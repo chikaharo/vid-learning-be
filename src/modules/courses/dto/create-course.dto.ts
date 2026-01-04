@@ -10,6 +10,7 @@ import {
   IsUUID,
   Max,
   Min,
+  IsNumber,
 } from 'class-validator';
 
 import { CourseLevel } from '../../../common/enums/course-level.enum';
@@ -36,6 +37,11 @@ export class CreateCourseDto {
   @Min(0)
   @Max(100000)
   durationMinutes: number;
+
+  @IsNumber()
+  @Min(0)
+  @IsOptional()
+  price?: number;
 
   @IsBoolean()
   isPublished: boolean;

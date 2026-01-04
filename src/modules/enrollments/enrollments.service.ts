@@ -41,12 +41,25 @@ export class EnrollmentsService {
     return this.enrollmentsRepository.save(enrollment);
   }
 
-  findForUser(userId: string) {
-    return this.enrollmentsRepository.find({
+  async findForUser(userId: string) {
+    console.log(`[EnrollmentsService] Finding for user: ${userId}`);
+    
+    // Debug: Find without relations
+    const debugResults = await this.enrollmentsRepository.find({
+      where: { userId },
+    });
+    console.log(`[EnrollmentsService] DEBUG: Found ${debugResults.length} enrollments WITHOUT relations`);
+    if (debugResults.length > 0) {
+        console.log(`[EnrollmentsService] DEBUG: First enrollment:`, debugResults[0]);
+    }
+
+    const results = await this.enrollmentsRepository.find({
       where: { userId },
       relations: ['course'],
       order: { createdAt: 'DESC' },
     });
+    console.log(`[EnrollmentsService] Found ${results.length} enrollments WITH relations`);
+    return results;
   }
 
   findForCourse(courseId: string) {
