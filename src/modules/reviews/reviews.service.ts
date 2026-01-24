@@ -78,4 +78,45 @@ export class ReviewsService {
 
     await this.coursesService.updateRating(courseId, avg, count);
   }
+
+  async findAllAdmin(
+    page = 1,
+    limit = 10,
+    search?: string,
+  ): Promise<{ data: Review[]; total: number; page: number; limit: number }> {
+    const query = this.reviewsRepository.createQueryBuilder('review');
+    
+    query
+      .leftJoinAndSelect('review.user', 'user')
+      .leftJoinAndSelect('review.course', 'course');
+
+    if (search) {
+      query.where(
+        'review.comment ILIKE :search OR user.fullName ILIKE :search',
+        { search: `%${search}%` },
+      );
+    }
+
+    query
+      .orderBy('review.createdAt', 'DESC')
+      .skip((page - 1) * limit)
+      .take(limit);
+
+    const [data, total] = await query.getManyAndCount();
+
+    return {
+      data,
+      total,
+      page,
+      limit,
+    };
+  }
+
+  async delete(id: string) {
+    const review = await this.reviewsRepository.findOne({ where: { id } });
+    if (review) {
+      await this.reviewsRepository.delete(id);
+      await this.updateCourseRating(review.courseId);
+    }
+  }
 }

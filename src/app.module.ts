@@ -14,6 +14,7 @@ import { QuizzesModule } from './modules/quizzes/quizzes.module';
 import { UsersModule } from './modules/users/users.module';
 import { VideosModule } from './modules/videos/videos.module';
 import { ReviewsModule } from './modules/reviews/reviews.module';
+import { StatisticsModule } from './modules/statistics/statistics.module';
 
 @Module({
   imports: [
@@ -51,6 +52,7 @@ import { ReviewsModule } from './modules/reviews/reviews.module';
     EnrollmentsModule,
     VideosModule,
     ReviewsModule,
+    StatisticsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

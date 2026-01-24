@@ -36,8 +36,33 @@ export class UsersService {
     return this.stripPassword(saved);
   }
 
-  findAll(): Promise<User[]> {
-    return this.usersRepository.find();
+  async findAll(
+    page = 1,
+    limit = 10,
+    search?: string,
+  ): Promise<{ data: User[]; total: number; page: number; limit: number }> {
+    const query = this.usersRepository.createQueryBuilder('user');
+
+    if (search) {
+      query.where(
+        'user.email ILIKE :search OR user.fullName ILIKE :search',
+        { search: `%${search}%` },
+      );
+    }
+
+    query
+      .orderBy('user.createdAt', 'DESC')
+      .skip((page - 1) * limit)
+      .take(limit);
+
+    const [data, total] = await query.getManyAndCount();
+
+    return {
+      data: data.map((u) => this.stripPassword(u)),
+      total,
+      page,
+      limit,
+    };
   }
 
   async findOne(id: string): Promise<User> {
@@ -66,6 +91,20 @@ export class UsersService {
     }
     const merged = this.usersRepository.merge(user, dto);
     const saved = await this.usersRepository.save(merged);
+    return this.stripPassword(saved);
+  }
+
+  async updateStatus(id: string, isActive: boolean): Promise<User> {
+    const user = await this.findOne(id);
+    user.isActive = isActive;
+    const saved = await this.usersRepository.save(user);
+    return this.stripPassword(saved);
+  }
+
+  async updateRole(id: string, role: any): Promise<User> {
+    const user = await this.findOne(id);
+    user.role = role;
+    const saved = await this.usersRepository.save(user);
     return this.stripPassword(saved);
   }
 

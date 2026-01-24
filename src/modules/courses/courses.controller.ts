@@ -7,12 +7,18 @@ import {
   ParseUUIDPipe,
   Patch,
   Post,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 
+import { Roles } from '../../common/decorators/roles.decorator';
+import { UserRole } from '../../common/enums/user-role.enum';
+import { RolesGuard } from '../../common/guards/roles.guard';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CreateCourseDto } from './dto/create-course.dto';
+import { UpdateCourseFeatureDto } from './dto/update-course-feature.dto';
+import { UpdateCourseStatusDto } from './dto/update-course-status.dto';
 import { UpdateCourseDto } from './dto/update-course.dto';
 import { CoursesService } from './courses.service';
 import { User } from '../../common/decorators/user.decorator';
@@ -36,6 +42,43 @@ export class CoursesController {
   @ApiOperation({ summary: 'List published and draft courses' })
   findAll() {
     return this.coursesService.findAll();
+  }
+
+  @Get('admin')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'List all courses (Admin)' })
+  findAllAdmin(
+    @Query('page') page = 1,
+    @Query('limit') limit = 10,
+    @Query('search') search?: string,
+  ) {
+    return this.coursesService.findAllAdmin(Number(page), Number(limit), search);
+  }
+
+  @Patch(':id/status')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Update course status (Publish/Unpublish)' })
+  updateStatus(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Body() dto: UpdateCourseStatusDto,
+  ) {
+    return this.coursesService.updateStatus(id, dto.isPublished);
+  }
+
+  @Patch(':id/feature')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Update course feature status' })
+  updateFeature(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Body() dto: UpdateCourseFeatureDto,
+  ) {
+    return this.coursesService.updateFeature(id, dto.isFeatured);
   }
 
   @UseGuards(JwtAuthGuard)
