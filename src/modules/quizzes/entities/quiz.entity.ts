@@ -5,6 +5,7 @@ import { Course } from '../../courses/entities/course.entity';
 import { Lesson } from '../../courses/entities/lesson.entity';
 import { QuizAttempt } from '../../quiz-attempts/entities/quiz-attempt.entity';
 import { QuizQuestion } from './quiz-question.entity';
+import { QuizType } from '../../../common/enums/quiz-type.enum';
 
 @Entity('quizzes')
 export class Quiz extends BaseEntity {
@@ -22,6 +23,16 @@ export class Quiz extends BaseEntity {
 
   @Column({ type: 'int', default: 0 })
   order: number;
+
+  @Column({
+    type: 'enum',
+    enum: QuizType,
+    default: QuizType.PRACTICE,
+  })
+  type: QuizType;
+
+  @Column({ name: 'max_retries', type: 'int', nullable: true })
+  maxRetries?: number;
 
   @ManyToOne(() => Course, (course) => course.quizzes, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'course_id' })

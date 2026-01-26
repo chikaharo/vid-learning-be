@@ -1,8 +1,9 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
 import { QuizAttemptStatus } from '../../common/enums/quiz-attempt-status.enum';
+import { QuizType } from '../../common/enums/quiz-type.enum';
 import { QuizzesService } from '../quizzes/quizzes.service';
 import { UsersService } from '../users/users.service';
 import { StartQuizAttemptDto } from './dto/start-quiz-attempt.dto';
@@ -22,10 +23,23 @@ export class QuizAttemptsService {
   ) {}
 
   async start(dto: StartQuizAttemptDto) {
-    await Promise.all([
+    const [quiz, user] = await Promise.all([
       this.quizzesService.findOne(dto.quizId),
       this.usersService.findOne(dto.userId),
     ]);
+
+    if (quiz.type === QuizType.TEST && quiz.maxRetries) {
+      const attemptsCount = await this.attemptsRepository.count({
+        where: { quizId: dto.quizId, userId: dto.userId },
+      });
+
+      if (attemptsCount >= quiz.maxRetries) {
+        throw new ForbiddenException(
+          `You have reached the maximum number of attempts (${quiz.maxRetries}) for this test.`,
+        );
+      }
+    }
+
     const attempt = this.attemptsRepository.create({
       quizId: dto.quizId,
       userId: dto.userId,
