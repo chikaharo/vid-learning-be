@@ -1,4 +1,4 @@
-import { S3Client } from '@aws-sdk/client-s3';
+import { S3Client, DeleteObjectCommand } from '@aws-sdk/client-s3';
 import { Upload } from '@aws-sdk/lib-storage';
 import { Request } from 'express';
 import { StorageEngine } from 'multer';
@@ -80,12 +80,14 @@ export class S3Storage implements StorageEngine {
     file: Express.Multer.File,
     cb: (error: Error | null) => void,
   ) {
-    this.s3.deleteObject(
-      {
-        Bucket: this.bucket,
-        Key: file.filename,
-      },
-      (err) => cb(err || null),
-    );
+    this.s3
+      .send(
+        new DeleteObjectCommand({
+          Bucket: this.bucket,
+          Key: file.filename,
+        }),
+      )
+      .then(() => cb(null))
+      .catch((err) => cb(err));
   }
 }
