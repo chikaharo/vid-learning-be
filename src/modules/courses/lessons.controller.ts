@@ -14,25 +14,20 @@ import {
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { diskStorage } from 'multer';
-import { existsSync, mkdirSync } from 'fs';
-import { extname, join } from 'path';
+import { S3Client } from '@aws-sdk/client-s3';
 import { randomUUID } from 'crypto';
+import { extname } from 'path';
 
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CreateLessonDto } from './dto/create-lesson.dto';
 import { UpdateLessonDto } from './dto/update-lesson.dto';
 import { LessonsService } from './lessons.service';
 import { User } from '../../common/decorators/user.decorator';
+import { S3Storage } from '../../common/storage/s3.storage';
 import type { JwtPayload } from '../auth/interfaces/jwt-payload.interface';
 
-const lessonVideoDir = join(process.cwd(), 'uploads', 'lessons');
-
-function ensureLessonVideoDir() {
-  if (!existsSync(lessonVideoDir)) {
-    mkdirSync(lessonVideoDir, { recursive: true });
-  }
-}
+// Initialize S3 Client (Region will be loaded from AWS_REGION env var or instance metadata)
+const s3 = new S3Client({});
 
 @ApiTags('Lessons')
 @Controller('lessons')
@@ -86,16 +81,16 @@ export class LessonsController {
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @Post('video')
-  @ApiOperation({ summary: 'Upload a lesson video' })
+  @ApiOperation({ summary: 'Upload a lesson video to S3' })
   @UseInterceptors(
     FileInterceptor('video', {
-      storage: diskStorage({
-        destination: (_req, _file, cb) => {
-          ensureLessonVideoDir();
-          cb(null, lessonVideoDir);
-        },
-        filename: (_req, file, cb) => {
-          const uniqueName = `${randomUUID()}${extname(file.originalname)}`;
+      storage: new S3Storage({
+        s3,
+        bucket: process.env.AWS_S3_BUCKET_NAME || 'vid-learning-bucket',
+        key: (_req, file, cb) => {
+          const uniqueName = `lessons/${randomUUID()}${extname(
+            file.originalname,
+          )}`;
           cb(null, uniqueName);
         },
       }),
@@ -117,11 +112,19 @@ export class LessonsController {
     if (!file) {
       throw new BadRequestException('Video file is required');
     }
+    
+    // Construct public URL
+    const bucket = process.env.AWS_S3_BUCKET_NAME || 'vid-learning-bucket';
+    const region = process.env.AWS_REGION || 'us-east-1';
+    
+    // Using virtual-hosted-style URL: https://bucket.s3.region.amazonaws.com/key
+    const videoUrl = `https://${bucket}.s3.${region}.amazonaws.com/${file.filename}`;
+    
     return {
       filename: file.filename,
       size: file.size,
       mimetype: file.mimetype,
-      videoUrl: `/uploads/lessons/${file.filename}`,
+      videoUrl: videoUrl,
     };
   }
 }
