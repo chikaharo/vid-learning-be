@@ -10,7 +10,7 @@ export class Enrollment extends BaseEntity {
   @ManyToOne(() => User, (user) => user.enrollments, { onDelete: 'CASCADE' })
   user: User;
 
-  @Column({ name: 'user_id' })
+  @Column({ name: 'user_id', nullable: true })
   userId: string;
 
   @ManyToOne(() => Course, (course) => course.enrollments, {
@@ -18,7 +18,7 @@ export class Enrollment extends BaseEntity {
   })
   course: Course;
 
-  @Column({ name: 'course_id' })
+  @Column({ name: 'course_id', nullable: true })
   courseId: string;
 
   @Column({

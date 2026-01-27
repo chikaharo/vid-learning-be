@@ -145,4 +145,47 @@ export class CoursesService {
       ratingCount: count,
     });
   }
+
+  async findAllAdmin(
+    page = 1,
+    limit = 10,
+    search?: string,
+  ): Promise<{ data: Course[]; total: number; page: number; limit: number }> {
+    const query = this.coursesRepository.createQueryBuilder('course');
+    
+    query.leftJoinAndSelect('course.instructor', 'instructor');
+
+    if (search) {
+      query.where(
+        'course.title ILIKE :search OR course.slug ILIKE :search',
+        { search: `%${search}%` },
+      );
+    }
+
+    query
+      .orderBy('course.createdAt', 'DESC')
+      .skip((page - 1) * limit)
+      .take(limit);
+
+    const [data, total] = await query.getManyAndCount();
+
+    return {
+      data,
+      total,
+      page,
+      limit,
+    };
+  }
+
+  async updateStatus(id: string, isPublished: boolean) {
+    const course = await this.findOne(id);
+    course.isPublished = isPublished;
+    return this.coursesRepository.save(course);
+  }
+
+  async updateFeature(id: string, isFeatured: boolean) {
+    const course = await this.findOne(id);
+    course.isFeatured = isFeatured;
+    return this.coursesRepository.save(course);
+  }
 }

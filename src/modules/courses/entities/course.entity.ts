@@ -37,6 +37,9 @@ export class Course extends BaseEntity {
   @Column({ type: 'boolean', default: false })
   isPublished: boolean;
 
+  @Column({ name: 'is_featured', type: 'boolean', default: false })
+  isFeatured: boolean;
+
   @Column({ type: 'simple-array', default: '' })
   tags: string[];
 
