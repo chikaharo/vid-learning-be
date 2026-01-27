@@ -9,10 +9,19 @@ import { join } from 'path';
 import { AppModule } from './app.module';
 import { AppConfig } from './config/configuration';
 
+import { json, urlencoded } from 'express';
+
+// ...
+
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
     cors: true,
   });
+  
+  // Increase body size limit for video uploads
+  app.use(json({ limit: '500mb' }));
+  app.use(urlencoded({ extended: true, limit: '500mb' }));
+
   app.setGlobalPrefix('api');
   app.useGlobalPipes(
     new ValidationPipe({
