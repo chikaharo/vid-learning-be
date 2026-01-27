@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, MiddlewareConsumer, RequestMethod, NestModule } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
@@ -15,6 +15,7 @@ import { UsersModule } from './modules/users/users.module';
 import { VideosModule } from './modules/videos/videos.module';
 import { ReviewsModule } from './modules/reviews/reviews.module';
 import { StatisticsModule } from './modules/statistics/statistics.module';
+import { DebugLoggerMiddleware } from './common/middleware/debug-logger.middleware';
 
 @Module({
   imports: [
@@ -57,4 +58,10 @@ import { StatisticsModule } from './modules/statistics/statistics.module';
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer
+      .apply(DebugLoggerMiddleware)
+      .forRoutes({ path: 'lessons/video', method: RequestMethod.POST });
+  }
+}
