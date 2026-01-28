@@ -28,7 +28,7 @@ export class S3Storage implements StorageEngine {
   constructor(opts: S3StorageOptions) {
     this.s3 = opts.s3;
     this.bucket = opts.bucket;
-    this.acl = opts.acl || 'public-read';
+    this.acl = opts.acl;
     this.getKey = opts.key || this.defaultKey;
   }
 
@@ -56,7 +56,7 @@ export class S3Storage implements StorageEngine {
           Key: key,
           Body: file.stream,
           ContentType: file.mimetype,
-          ACL: this.acl as any, // Cast to any because newer SDK types might be strict about ACL enums
+          // ACL removed: Bucket setting 'Bucket owner enforced' does not allow ACLs
         },
       });
 

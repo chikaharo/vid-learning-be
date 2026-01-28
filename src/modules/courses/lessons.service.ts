@@ -140,8 +140,8 @@ export class UploadFileServiceS3 implements UploadFileServiceAbstract {
 		this.s3_client = new S3Client({
 			region: process.env.AWS_REGION || 'us-east-1', 
 			credentials: {
-				accessKeyId: process.env.AWS_S3_ACCESS_KEY_ID as string,
-				secretAccessKey: process.env.AWS_S3_SECRET_ACCESS_KEY as string,
+				accessKeyId: process.env.AWS_ACCESS_KEY_ID ?? '',
+				secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY ?? '',
 			},
 		});
 	}
@@ -157,7 +157,7 @@ export class UploadFileServiceS3 implements UploadFileServiceAbstract {
 				Key: key,
 				Body: file.buffer,
                 ContentType: file.mimetype,
-				ACL: 'public-read',
+				// ACL: 'public-read', // Removed as bucket does not support ACLs
 				ContentLength: file.size, // calculate length of buffer
 			}),
 		);

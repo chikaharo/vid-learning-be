@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import { ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
@@ -54,6 +55,7 @@ async function bootstrap() {
     swaggerOptions: { persistAuthorization: true },
   });
 
-  await app.listen(port);
+  const server = await app.listen(port);
+  server.setTimeout(600000); // 10 minutes timeout for large uploads
 }
 void bootstrap();
