@@ -2,6 +2,7 @@ import {
   Injectable,
   NotFoundException,
   ForbiddenException,
+  Logger,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -10,6 +11,11 @@ import { CoursesService } from './courses.service';
 import { CreateLessonDto } from './dto/create-lesson.dto';
 import { UpdateLessonDto } from './dto/update-lesson.dto';
 import { Lesson } from './entities/lesson.entity';
+import { UploadFileServiceAbstract } from 'src/common/entities/base.entity';
+import { PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
+import { ConfigService } from '@nestjs/config';
+import { randomUUID } from 'crypto';
+import { extname } from 'path';
 
 @Injectable()
 export class LessonsService {
@@ -93,4 +99,70 @@ export class LessonsService {
       throw new NotFoundException(`Lesson ${id} not found`);
     }
   }
+
+  // async upload(file) {
+  //   const { originalname } = file;
+  //   const bucketS3 =  process.env.AWS_S3_BUCKET_NAME || 'vid-learning-bucket';
+  //   await this.uploadS3(file.buffer, bucketS3, originalname);
+  // }
+
+  // async uploadS3(file, bucket, name) {
+  //   const s3 = new S3Client({
+  //     region: process.env.AWS_REGION || 'us-east-1',
+  //     credentials: {
+  //       accessKeyId: process.env.AWS_S3_ACCESS_KEY_ID as string,
+  //       secretAccessKey: process.env.AWS_S3_SECRET_ACCESS_KEY as string,
+  //     },
+  //   });
+  //   const params = {
+  //     Bucket: bucket,
+  //     Key: `lessons/${randomUUID()}${extname(file.originalname)}`,
+  //     Body: file,
+  //   };
+  //   return new Promise((resolve, reject) => {
+  //     s3.upload(params, (err, data) => {
+  //       if (err) {
+  //         Logger.error(err);
+  //         reject(err.message);
+  //       }
+  //       resolve(data);
+  //     });
+  //   });
+  // }
+
+    
 }
+
+@Injectable()
+export class UploadFileServiceS3 implements UploadFileServiceAbstract {
+	private s3_client: S3Client;
+	constructor(private readonly config_service: ConfigService) {
+		this.s3_client = new S3Client({
+			region: process.env.AWS_REGION || 'us-east-1', 
+			credentials: {
+				accessKeyId: process.env.AWS_S3_ACCESS_KEY_ID as string,
+				secretAccessKey: process.env.AWS_S3_SECRET_ACCESS_KEY as string,
+			},
+		});
+	}
+	async uploadFileToPublicBucket(
+		path: string,
+		{ file, file_name }: { file: Express.Multer.File; file_name: string },
+	) {
+		const bucket_name = process.env.AWS_S3_PUBLIC_BUCKET || 'huybd-vid-learning-bucket';
+		const key = `lessons/${randomUUID()}${extname(file.originalname)}`;
+		await this.s3_client.send(
+			new PutObjectCommand({
+				Bucket: bucket_name,
+				Key: key,
+				Body: file.buffer,
+                ContentType: file.mimetype,
+				ACL: 'public-read',
+				ContentLength: file.size, // calculate length of buffer
+			}),
+		);
+
+		return `https://${bucket_name}.s3.amazonaws.com/${key}`;
+	}
+}
+

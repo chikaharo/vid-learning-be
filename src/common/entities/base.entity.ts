@@ -14,3 +14,10 @@ export abstract class BaseEntity {
   @UpdateDateColumn({ name: 'updated_at' })
   updatedAt: Date;
 }
+
+export abstract class UploadFileServiceAbstract {
+	abstract uploadFileToPublicBucket(
+		path: string,
+		{ file, file_name }: { file: Express.Multer.File; file_name: string },
+	): Promise<string>;
+}
