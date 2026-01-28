@@ -14,7 +14,7 @@ import {
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { S3Client } from '@aws-sdk/client-s3';
+import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import { randomUUID } from 'crypto';
 import { extname } from 'path';
 
@@ -27,7 +27,9 @@ import { S3Storage } from '../../common/storage/s3.storage';
 import type { JwtPayload } from '../auth/interfaces/jwt-payload.interface';
 
 // Initialize S3 Client (Region will be loaded from AWS_REGION env var or instance metadata)
-const s3 = new S3Client({});
+const s3 = new S3Client({
+  region: process.env.AWS_REGION || 'us-east-1',
+});
 
 @ApiTags('Lessons')
 @Controller('lessons')
@@ -109,6 +111,7 @@ export class LessonsController {
     }),
   )
   uploadVideo(@UploadedFile() file: Express.Multer.File) {
+    console.log('uploaded file:', file);
     if (!file) {
       throw new BadRequestException('Video file is required');
     }
