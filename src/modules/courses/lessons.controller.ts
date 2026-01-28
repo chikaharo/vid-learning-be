@@ -29,6 +29,10 @@ import type { JwtPayload } from '../auth/interfaces/jwt-payload.interface';
 // Initialize S3 Client (Region will be loaded from AWS_REGION env var or instance metadata)
 const s3 = new S3Client({
   region: process.env.AWS_REGION || 'us-east-1',
+  credentials: {
+    accessKeyId: process.env.AWS_S3_ACCESS_KEY_ID ?? '',
+    secretAccessKey: process.env.AWS_S3_SECRET_ACCESS_KEY ?? '',
+  },
 });
 
 @ApiTags('Lessons')
@@ -88,7 +92,7 @@ export class LessonsController {
     FileInterceptor('video', {
       storage: new S3Storage({
         s3,
-        bucket: process.env.AWS_S3_BUCKET_NAME || 'vid-learning-bucket',
+        bucket: process.env.AWS_S3_PUBLIC_BUCKET || 'huybd-vid-learning-bucket',
         key: (_req, file, cb) => {
           const uniqueName = `lessons/${randomUUID()}${extname(
             file.originalname,
@@ -117,7 +121,7 @@ export class LessonsController {
     }
     
     // Construct public URL
-    const bucket = process.env.AWS_S3_BUCKET_NAME || 'vid-learning-bucket';
+    const bucket = process.env.AWS_S3_PUBLIC_BUCKET || 'huybd-vid-learning-bucket';
     const region = process.env.AWS_REGION || 'us-east-1';
     
     // Using virtual-hosted-style URL: https://bucket.s3.region.amazonaws.com/key

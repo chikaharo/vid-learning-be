@@ -1,3 +1,4 @@
+import { Logger } from '@nestjs/common';
 import { S3Client, DeleteObjectCommand } from '@aws-sdk/client-s3';
 import { Upload } from '@aws-sdk/lib-storage';
 import { Request } from 'express';
@@ -69,7 +70,11 @@ export class S3Storage implements StorageEngine {
             destination: this.bucket,
           });
         })
-        .catch((uploadErr) => {
+        .catch((uploadErr) => { 
+          Logger.error(`S3 Upload Failed: ${uploadErr.message}`, uploadErr.stack, 'S3Storage');
+          if (uploadErr.$metadata) {
+             Logger.error(`AWS Metadata: ${JSON.stringify(uploadErr.$metadata)}`, 'S3Storage');
+          }
           cb(uploadErr);
         });
     });
