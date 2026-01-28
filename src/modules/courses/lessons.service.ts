@@ -149,7 +149,7 @@ export class UploadFileServiceS3 implements UploadFileServiceAbstract {
 		path: string,
 		{ file, file_name }: { file: Express.Multer.File; file_name: string },
 	) {
-		const bucket_name = process.env.AWS_S3_PUBLIC_BUCKET || 'huybd-vid-learning-bucket';
+		const bucket_name = process.env.VIDEO_STORAGE_BUCKET || 'huybd-vid-learning-bucket';
 		const key = `lessons/${randomUUID()}${extname(file.originalname)}`;
 		await this.s3_client.send(
 			new PutObjectCommand({

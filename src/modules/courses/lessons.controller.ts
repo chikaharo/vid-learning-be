@@ -92,7 +92,7 @@ export class LessonsController {
     FileInterceptor('video', {
       storage: new S3Storage({
         s3,
-        bucket: process.env.AWS_S3_PUBLIC_BUCKET || 'huybd-vid-learning-bucket',
+        bucket: process.env.VIDEO_STORAGE_BUCKET || 'huybd-vid-learning-bucket',
         key: (_req, file, cb) => {
           const uniqueName = `lessons/${randomUUID()}${extname(
             file.originalname,
@@ -121,7 +121,7 @@ export class LessonsController {
     }
     
     // Construct public URL
-    const bucket = process.env.AWS_S3_PUBLIC_BUCKET || 'huybd-vid-learning-bucket';
+    const bucket = process.env.VIDEO_STORAGE_BUCKET || 'huybd-vid-learning-bucket';
     const region = process.env.AWS_REGION || 'us-east-1';
     
     // Using virtual-hosted-style URL: https://bucket.s3.region.amazonaws.com/key
