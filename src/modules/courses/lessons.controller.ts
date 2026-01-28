@@ -30,8 +30,8 @@ import type { JwtPayload } from '../auth/interfaces/jwt-payload.interface';
 const s3 = new S3Client({
   region: process.env.AWS_REGION || 'us-east-1',
   credentials: {
-    accessKeyId: process.env.AWS_S3_ACCESS_KEY_ID ?? '',
-    secretAccessKey: process.env.AWS_S3_SECRET_ACCESS_KEY ?? '',
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID ?? '',
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY ?? '',
   },
 });
 
@@ -115,7 +115,6 @@ export class LessonsController {
     }),
   )
   uploadVideo(@UploadedFile() file: Express.Multer.File) {
-    console.log('uploaded file:', file);
     if (!file) {
       throw new BadRequestException('Video file is required');
     }
