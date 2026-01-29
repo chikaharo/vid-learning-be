@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, IsNull } from 'typeorm';
 import { Comment } from './entities/comment.entity';
 import { CreateCommentDto } from './dto/create-comment.dto';
 
@@ -24,7 +24,7 @@ export class CommentsService {
     const comments = await this.commentsRepository.find({
       where: { 
         lessonId, 
-        parentId: null 
+        parentId: IsNull()
       } as any, // Cast to any to avoid TypeORM null type issues if strict
       relations: ['user', 'replies', 'replies.user'],
       order: {
