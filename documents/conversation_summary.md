@@ -40,3 +40,22 @@ Redesign the instructor dashboard course management page to include a "Students"
 - `task.md`: Detailed task tracking list.
 - `implementation_plan.md`: Technical design and plan.
 - `walkthrough.md`: Proof of work and verification steps.
+
+## specialized-agent-session-2 (Date: 2026-01-13)
+
+### Objective
+Resolve database connection error due to schema mismatch: `QueryFailedError: column "course_id" of relation "quizzes" contains null values`.
+
+### Work Accomplished
+
+1.  **Investigation**:
+    - Identified that the `quizzes` table contained rows with `NULL` `course_id`, conflicting with the updated `Quiz` entity which enforces a non-nullable relationship.
+
+2.  **Fix Implementation**:
+    - Created and executed a new database migration: `src/migrations/1768296523422-FixQuizCourseId.ts`.
+    - **Migration Logic**:
+        - Updates orphan quizzes/lessons (where `course_id` is null) to link to the first available `Course` in the database.
+        - Deletes orphan records if no valid course exists to link to.
+        - Safely applies `NOT NULL` constraints to `course_id` columns in `quizzes` and `lessons` tables.
+        - Handles `lessons.module_id` schema changes.
+    - Verified the fix by successfully running the migration and confirming the backend starts.
