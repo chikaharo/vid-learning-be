@@ -15,6 +15,7 @@ import { UsersModule } from './modules/users/users.module';
 import { VideosModule } from './modules/videos/videos.module';
 import { ReviewsModule } from './modules/reviews/reviews.module';
 import { StatisticsModule } from './modules/statistics/statistics.module';
+import { CommentsModule } from './modules/comments/comments.module';
 import { DebugLoggerMiddleware } from './common/middleware/debug-logger.middleware';
 
 @Module({
@@ -54,6 +55,7 @@ import { DebugLoggerMiddleware } from './common/middleware/debug-logger.middlewa
     VideosModule,
     ReviewsModule,
     StatisticsModule,
+    CommentsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

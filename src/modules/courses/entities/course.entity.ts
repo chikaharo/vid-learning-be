@@ -53,7 +53,7 @@ export class Course extends BaseEntity {
   instructor: User;
 
   @Column({ name: 'instructor_id', nullable: true })
-  instructorId?: string;
+  instructorId: string;
 
   @OneToMany(() => CourseModule, (module) => module.course, { cascade: true })
   modules: CourseModule[];

@@ -60,6 +60,7 @@ export class CoursesService {
         },
       },
     });
+    
     if (!course) {
       throw new NotFoundException(`Course ${slug} not found`);
     }
