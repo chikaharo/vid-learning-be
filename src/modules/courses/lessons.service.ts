@@ -129,40 +129,38 @@ export class LessonsService {
   //     });
   //   });
   // }
-
-    
 }
 
 @Injectable()
 export class UploadFileServiceS3 implements UploadFileServiceAbstract {
-	private s3_client: S3Client;
-	constructor(private readonly config_service: ConfigService) {
-		this.s3_client = new S3Client({
-			region: process.env.AWS_REGION || 'us-east-1', 
-			credentials: {
-				accessKeyId: process.env.AWS_ACCESS_KEY_ID ?? '',
-				secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY ?? '',
-			},
-		});
-	}
-	async uploadFileToPublicBucket(
-		path: string,
-		{ file, file_name }: { file: Express.Multer.File; file_name: string },
-	) {
-		const bucket_name = process.env.VIDEO_STORAGE_BUCKET || 'huybd-vid-learning-bucket';
-		const key = `lessons/${randomUUID()}${extname(file.originalname)}`;
-		await this.s3_client.send(
-			new PutObjectCommand({
-				Bucket: bucket_name,
-				Key: key,
-				Body: file.buffer,
-                ContentType: file.mimetype,
-				// ACL: 'public-read', // Removed as bucket does not support ACLs
-				ContentLength: file.size, // calculate length of buffer
-			}),
-		);
+  private s3_client: S3Client;
+  constructor(private readonly config_service: ConfigService) {
+    this.s3_client = new S3Client({
+      region: process.env.AWS_REGION || 'us-east-1',
+      credentials: {
+        accessKeyId: process.env.AWS_ACCESS_KEY_ID ?? '',
+        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY ?? '',
+      },
+    });
+  }
+  async uploadFileToPublicBucket(
+    path: string,
+    { file, file_name }: { file: Express.Multer.File; file_name: string },
+  ) {
+    const bucket_name =
+      process.env.VIDEO_STORAGE_BUCKET || 'huybd-vid-learning-bucket';
+    const key = `lessons/${randomUUID()}${extname(file.originalname)}`;
+    await this.s3_client.send(
+      new PutObjectCommand({
+        Bucket: bucket_name,
+        Key: key,
+        Body: file.buffer,
+        ContentType: file.mimetype,
+        // ACL: 'public-read', // Removed as bucket does not support ACLs
+        ContentLength: file.size, // calculate length of buffer
+      }),
+    );
 
-		return `https://${bucket_name}.s3.amazonaws.com/${key}`;
-	}
+    return `https://${bucket_name}.s3.amazonaws.com/${key}`;
+  }
 }
-

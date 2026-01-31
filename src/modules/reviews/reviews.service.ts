@@ -85,7 +85,7 @@ export class ReviewsService {
     search?: string,
   ): Promise<{ data: Review[]; total: number; page: number; limit: number }> {
     const query = this.reviewsRepository.createQueryBuilder('review');
-    
+
     query
       .leftJoinAndSelect('review.user', 'user')
       .leftJoinAndSelect('review.course', 'course');

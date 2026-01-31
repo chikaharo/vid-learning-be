@@ -118,14 +118,15 @@ export class LessonsController {
     if (!file) {
       throw new BadRequestException('Video file is required');
     }
-    
+
     // Construct public URL
-    const bucket = process.env.VIDEO_STORAGE_BUCKET || 'huybd-vid-learning-bucket';
+    const bucket =
+      process.env.VIDEO_STORAGE_BUCKET || 'huybd-vid-learning-bucket';
     const region = process.env.AWS_REGION || 'us-east-1';
-    
+
     // Using virtual-hosted-style URL: https://bucket.s3.region.amazonaws.com/key
     const videoUrl = `https://${bucket}.s3.${region}.amazonaws.com/${file.filename}`;
-    
+
     return {
       filename: file.filename,
       size: file.size,
