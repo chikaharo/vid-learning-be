@@ -64,7 +64,7 @@ export class S3Storage implements StorageEngine {
         .done()
         .then((result) => {
           cb(null, {
-            size: result.Key ? 0 : 0, // lib-storage doesn't always return size in result
+            size: result.Key ? file.size : 0, // lib-storage doesn't always return size in result
             path: (result as any).Location || result.Key, // Location is deprecated but useful if present
             filename: key,
             destination: this.bucket,
