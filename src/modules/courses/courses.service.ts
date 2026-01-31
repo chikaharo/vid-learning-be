@@ -60,7 +60,7 @@ export class CoursesService {
         },
       },
     });
-    
+
     if (!course) {
       throw new NotFoundException(`Course ${slug} not found`);
     }
@@ -153,14 +153,13 @@ export class CoursesService {
     search?: string,
   ): Promise<{ data: Course[]; total: number; page: number; limit: number }> {
     const query = this.coursesRepository.createQueryBuilder('course');
-    
+
     query.leftJoinAndSelect('course.instructor', 'instructor');
 
     if (search) {
-      query.where(
-        'course.title ILIKE :search OR course.slug ILIKE :search',
-        { search: `%${search}%` },
-      );
+      query.where('course.title ILIKE :search OR course.slug ILIKE :search', {
+        search: `%${search}%`,
+      });
     }
 
     query

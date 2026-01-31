@@ -44,10 +44,9 @@ export class UsersService {
     const query = this.usersRepository.createQueryBuilder('user');
 
     if (search) {
-      query.where(
-        'user.email ILIKE :search OR user.fullName ILIKE :search',
-        { search: `%${search}%` },
-      );
+      query.where('user.email ILIKE :search OR user.fullName ILIKE :search', {
+        search: `%${search}%`,
+      });
     }
 
     query

@@ -54,7 +54,11 @@ export class CoursesController {
     @Query('limit') limit = 10,
     @Query('search') search?: string,
   ) {
-    return this.coursesService.findAllAdmin(Number(page), Number(limit), search);
+    return this.coursesService.findAllAdmin(
+      Number(page),
+      Number(limit),
+      search,
+    );
   }
 
   @Patch(':id/status')

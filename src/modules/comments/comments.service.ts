@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ForbiddenException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, IsNull } from 'typeorm';
 import { Comment } from './entities/comment.entity';
@@ -22,10 +26,10 @@ export class CommentsService {
   async findAllByLesson(lessonId: string) {
     // Fetch only top-level comments (no parent), with their replies
     const comments = await this.commentsRepository.find({
-      where: { 
-        lessonId, 
-        parentId: IsNull()
-      } as any, // Cast to any to avoid TypeORM null type issues if strict
+      where: {
+        lessonId,
+        parentId: IsNull(),
+      },
       relations: ['user', 'replies', 'replies.user'],
       order: {
         createdAt: 'DESC',
@@ -33,10 +37,10 @@ export class CommentsService {
     });
 
     // Sort replies by createdAt ASC (oldest first)
-    comments.forEach(c => {
-        if (c.replies) {
-            c.replies.sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());
-        }
+    comments.forEach((c) => {
+      if (c.replies) {
+        c.replies.sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());
+      }
     });
 
     return comments;
@@ -49,8 +53,8 @@ export class CommentsService {
     }
 
     if (comment.userId !== userId) {
-        // Optionally allow admin or instructor to delete, but for now strict owner check
-       throw new ForbiddenException('You can only delete your own comments');
+      // Optionally allow admin or instructor to delete, but for now strict owner check
+      throw new ForbiddenException('You can only delete your own comments');
     }
 
     return this.commentsRepository.remove(comment);

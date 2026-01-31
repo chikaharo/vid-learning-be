@@ -60,7 +60,11 @@ export class ReviewsController {
     @Query('limit') limit = 10,
     @Query('search') search?: string,
   ) {
-    return this.reviewsService.findAllAdmin(Number(page), Number(limit), search);
+    return this.reviewsService.findAllAdmin(
+      Number(page),
+      Number(limit),
+      search,
+    );
   }
 
   @Delete(':id')

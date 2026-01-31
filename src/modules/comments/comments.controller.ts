@@ -29,6 +29,8 @@ export class CommentsController {
   }
 
   @Get('lesson/:lessonId')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Get comments by lesson ID' })
   findAllByLesson(@Param('lessonId', new ParseUUIDPipe()) lessonId: string) {
     return this.commentsService.findAllByLesson(lessonId);
@@ -38,7 +40,10 @@ export class CommentsController {
   @UseGuards(JwtAuthGuard)
   @Delete(':id')
   @ApiOperation({ summary: 'Delete a comment' })
-  remove(@Param('id', new ParseUUIDPipe()) id: string, @User() user: JwtPayload) {
+  remove(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @User() user: JwtPayload,
+  ) {
     return this.commentsService.remove(id, user.sub);
   }
 }

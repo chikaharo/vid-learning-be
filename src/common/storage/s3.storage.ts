@@ -70,10 +70,17 @@ export class S3Storage implements StorageEngine {
             destination: this.bucket,
           });
         })
-        .catch((uploadErr) => { 
-          Logger.error(`S3 Upload Failed: ${uploadErr.message}`, uploadErr.stack, 'S3Storage');
+        .catch((uploadErr) => {
+          Logger.error(
+            `S3 Upload Failed: ${uploadErr.message}`,
+            uploadErr.stack,
+            'S3Storage',
+          );
           if (uploadErr.$metadata) {
-             Logger.error(`AWS Metadata: ${JSON.stringify(uploadErr.$metadata)}`, 'S3Storage');
+            Logger.error(
+              `AWS Metadata: ${JSON.stringify(uploadErr.$metadata)}`,
+              'S3Storage',
+            );
           }
           cb(uploadErr);
         });

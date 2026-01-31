@@ -26,7 +26,7 @@ import { Enrollment } from '../enrollments/entities/enrollment.entity';
     UsersModule,
   ],
   controllers: [CoursesController, LessonsController, CourseWishlistController],
-  providers: [CoursesService, LessonsService,CourseWishlistService],
+  providers: [CoursesService, LessonsService, CourseWishlistService],
   exports: [
     CoursesService,
     LessonsService,
